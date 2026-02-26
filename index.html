@@ -380,6 +380,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <h2 style="font-size:16px;font-weight:700;">商品管理</h2>
       <div style="display:flex;gap:5px;">
+        <button class="btn bg bsm" id="simpleUCBtn" onclick="toggleSimpleUC()">単純原価 表示</button>
         <button class="btn bg bsm" onclick="dlTpl('products')">📋 テンプレ</button>
         <button class="btn bg bsm" onclick="importCSV('products')">📥 CSV取込</button>
         <button class="btn bp bsm" onclick="openAddProduct()">＋ 追加</button>
@@ -528,7 +529,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 
 <script>
 // ================================================================ STATE
-var S={theme:'dark',vm:'card',page:'register',evId:null,anEvId:null,anMode:'cost',simIdx:0,simMode:'cost',simEvId:null,yAxisSet:null,cart:{},pp:0,npTarget:null,npCb:null};
+var S={theme:'dark',vm:'card',page:'register',evId:null,anEvId:null,anMode:'cost',simIdx:0,simMode:'cost',simEvId:null,yAxisSet:null,showSimpleUC:true,cart:{},pp:0,npTarget:null,npCb:null};
 var npVal='0',simOvr={},csvTarget=null;
 var openAcc=new Set();
 var anProdFilter=null;
@@ -733,13 +734,18 @@ function renderPMRow(p){
         +'</div>';
     }).join('');
     var cAccId='acc-cost-'+p.id+'-'+ed.id;
+    var adjUCVal=(ed.adjUnitCost!=null&&ed.adjUnitCost>=0)?ed.adjUnitCost:null;
+    var simpleUCStr=(edUC).toFixed(1);
     return '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;overflow:hidden;">'
-      +'<div style="display:flex;align-items:center;gap:6px;padding:7px 9px;">'
+      +'<div style="display:flex;align-items:center;gap:5px;padding:7px 9px;flex-wrap:wrap;">'
       +'<input class="erinp lbl" value="'+ed.label.replace(/"/g,'&quot;')+'" onchange="updEdLbl(\''+p.id+'\',\''+ed.id+'\',this.value)" onclick="event.stopPropagation();this.select()">'
       +'<input class="erinp num" type="number" min="0" value="'+ed.ordered+'" onchange="updEd(\''+p.id+'\',\''+ed.id+'\',this.value)" onclick="event.stopPropagation();this.select()">'
-      +'<span style="font-size:9px;color:var(--text3);">部(総印刷数)</span>'
-      +'<span style="font-size:10px;color:var(--yellow);font-family:\'Space Mono\';flex:1;text-align:right;" id="uc-'+p.id+'-'+ed.id+'">¥'+Math.round(edUC).toLocaleString()+'/部</span>'
-      +'<button class="btn bg" style="padding:6px 10px;font-size:11px;" onclick="event.stopPropagation();togAcc(\''+cAccId+'\')">💰 原価</button>'
+      +'<span style="font-size:9px;color:var(--text3);">部</span>'
+      +(S.showSimpleUC?'<span style="font-size:9px;color:var(--text2);white-space:nowrap;" id="uc-'+p.id+'-'+ed.id+'">単純¥'+simpleUCStr+'/部</span>':'<span id="uc-'+p.id+'-'+ed.id+'" style="display:none;"></span>')
+      +'<span style="font-size:11px;color:var(--yellow);font-family:\'Space Mono\';white-space:nowrap;" id="ec-'+p.id+'-'+ed.id+'">¥'+edCost.toLocaleString()+'</span>'
+      +(adjUCVal!==null?'<span style="font-size:10px;color:var(--accent);font-weight:700;white-space:nowrap;">調整¥'+adjUCVal+'/部</span>':'')
+      +'<button class="btn bg" style="padding:5px 8px;font-size:10px;" onclick="event.stopPropagation();togAcc(\''+cAccId+'\')">💰 原価</button>'
+      +'<button class="btn bg" style="padding:5px 8px;font-size:10px;" onclick="event.stopPropagation();openAdjUC(\''+p.id+'\',\''+ed.id+'\')">' + (adjUCVal!==null?'調整済み':'調整原価') +'</button>'
       +'<button class="erdel" onclick="event.stopPropagation();delEdSafe(\''+p.id+'\',\''+ed.id+'\')">✕</button>'
       +'</div>'
       +'<div class="accb '+(openAcc.has(cAccId)?'open':'')+'" id="'+cAccId+'" style="padding:8px 9px;border-top:1px solid var(--border);background:var(--bg2);">'
@@ -786,6 +792,55 @@ function renderPMRow(p){
     +'<button class="btn bd bsm" style="margin-left:auto;" onclick="delProd(\''+p.id+'\')">🗑 削除</button>'
     +'</div></div>';
 }
+// ================================================================ 調整原価
+function edAdjUC(p,ed){
+  if(ed.adjUnitCost!=null&&ed.adjUnitCost>=0)return ed.adjUnitCost;
+  var edC=(p.costs||[]).reduce(function(s,c){return s+(c.perEdition&&c.perEdition[ed.id]?c.perEdition[ed.id]:0);},0);
+  return ed.ordered>0?edC/ed.ordered:0;
+}
+function adjTotCost(p){
+  return(p.editions||[]).reduce(function(s,ed){return s+edAdjUC(p,ed)*(ed.ordered||0);},0);
+}
+function effectiveUnitCost(p){var o=totOrd(p);return o>0?adjTotCost(p)/o:0;}
+function toggleSimpleUC(){
+  S.showSimpleUC=!S.showSimpleUC;
+  var btn=document.getElementById('simpleUCBtn');
+  if(btn)btn.textContent='単純原価 '+(S.showSimpleUC?'表示':'非表示');
+  renderPM();
+}
+function openAdjUC(pid,eid){
+  var p=S.p.find(function(x){return x.id===pid;});if(!p)return;
+  var ed=(p.editions||[]).find(function(e){return e.id===eid;});if(!ed)return;
+  var edCost=(p.costs||[]).reduce(function(s,c){return s+(c.perEdition&&c.perEdition[ed.id]?c.perEdition[ed.id]:0);},0);
+  var simpleUC=ed.ordered>0?(edCost/ed.ordered).toFixed(1):'−';
+  var curAdj=ed.adjUnitCost!=null?ed.adjUnitCost:'';
+  openM('<div class="mtit">調整原価を設定</div>'
+    +'<div style="background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;">'
+    +'<div>版: <strong>'+ed.label+'</strong> / 印刷: '+ed.ordered+'部</div>'
+    +'<div style="color:var(--text2);">単純原価: <span style="font-family:'Space Mono';">¥'+simpleUC+'/部</span></div>'
+    +'<div style="color:var(--text2);">総原価: <span style="font-family:'Space Mono';">¥'+edCost.toLocaleString()+'</span></div>'
+    +'</div>'
+    +'<div class="fg"><label class="fl">調整原価 (円/部) — 空欄で単純原価を使用</label>'
+    +'<input class="fi" id="adjUCInput" type="number" min="0" step="1" placeholder="例: 400" value="'+curAdj+'"></div>'
+    +'<div class="mact">'
+    +'<button class="btn bg" onclick="closeM()">キャンセル</button>'
+    +'<button class="btn bd bsm" onclick="clearAdjUC(''+pid+'',''+eid+'')">クリア</button>'
+    +'<button class="btn bp" onclick="saveAdjUC(''+pid+'',''+eid+'')">設定</button>'
+    +'</div>');
+}
+function saveAdjUC(pid,eid){
+  var p=S.p.find(function(x){return x.id===pid;});if(!p)return;
+  var ed=(p.editions||[]).find(function(e){return e.id===eid;});if(!ed)return;
+  var val=document.getElementById('adjUCInput').value;
+  if(val===''||val==null){ed.adjUnitCost=null;}
+  else{ed.adjUnitCost=Math.max(0,parseFloat(val)||0);}
+  save();closeM();renderPM();showToast('調整原価を設定しました');
+}
+function clearAdjUC(pid,eid){
+  var p=S.p.find(function(x){return x.id===pid;});if(!p)return;
+  var ed=(p.editions||[]).find(function(e){return e.id===eid;});if(!ed)return;
+  ed.adjUnitCost=null;save();closeM();renderPM();showToast('調整原価をクリアしました');
+}
 function togAcc(id){
   if(openAcc.has(id))openAcc.delete(id);else openAcc.add(id);
   var b=document.getElementById(id),a=document.getElementById('aa-'+id);
@@ -817,8 +872,10 @@ function refreshEdUC(pid){
   (p.editions||[]).forEach(function(ed){
     var edCost=(p.costs||[]).reduce(function(s,c){return s+(c.perEdition&&c.perEdition[ed.id]?c.perEdition[ed.id]:0);},0);
     var edUC=ed.ordered>0?edCost/ed.ordered:0;
-    var span=document.getElementById('uc-'+pid+'-'+ed.id);
-    if(span)span.textContent='¥'+Math.round(edUC).toLocaleString()+'/部';
+    var spanUC=document.getElementById('uc-'+pid+'-'+ed.id);
+    if(spanUC)spanUC.textContent='単純¥'+(edUC).toFixed(1)+'/部';
+    var spanEC=document.getElementById('ec-'+pid+'-'+ed.id);
+    if(spanEC)spanEC.textContent='¥'+edCost.toLocaleString();
   });
 }
 function delEdSafe(pid,eid){var p=S.p.find(function(x){return x.id===pid;});if(!p)return;p.editions=(p.editions||[]).filter(function(e){return e.id!==eid;});(p.costs||[]).forEach(function(c){if(c.perEdition)delete c.perEdition[eid];});openAcc.add('acc-ed-'+pid);save();renderPM();}
@@ -1015,7 +1072,7 @@ function renderAnEvSel(){
   if(!S.anEvId&&S.e.length)S.anEvId=S.e[0].id;
   el.innerHTML=(S.e||[]).map(function(e){return '<div class="echip '+(e.id===S.anEvId?'active':'')+'" onclick="selAnEv(\''+e.id+'\')">'+e.name+'</div>';}).join('');
 }
-function selAnEv(id){S.anEvId=id;anProdFilter=null;renderProdCheckboxes();renderStats();renderChart();renderShare();renderHist();}
+function selAnEv(id){S.anEvId=id;anProdFilter=null;renderAnEvSel();renderProdCheckboxes();renderStats();renderChart();renderShare();renderHist();}
 function fSales(){return(S.s||[]).filter(function(s){return s.eid===S.anEvId;});}
 function fSalesFiltered(){var all=fSales();if(!anProdFilter)return all;return all.filter(function(s){return anProdFilter.has(s.pid);});}
 function renderProdCheckboxes(){
@@ -1038,7 +1095,7 @@ function renderStats(){
   var sales=fSales();
   var rev=sales.reduce(function(s,x){return s+x.price*x.qty;},0);
   var qty=sales.reduce(function(s,x){return s+x.qty;},0);
-  var cu=0;sales.forEach(function(s){var p=S.p.find(function(x){return x.id===s.pid;});if(p)cu+=unitCost(p)*s.qty;});
+  var cu=0;sales.forEach(function(s){var p=S.p.find(function(x){return x.id===s.pid;});if(p)cu+=effectiveUnitCost(p)*s.qty;});
   var ev=S.e.find(function(e){return e.id===S.anEvId;});
   var exp=(ev&&ev.expenses||[]).reduce(function(s,e){return s+e.amount;},0);
   var mode=S.anMode||'cost';
@@ -1072,16 +1129,16 @@ function effectiveCostForEvent(pid,currentEventId){
   var currentDate=currentEv.date;
   var pastEids=S.e.filter(function(e){return e.date<currentDate;}).map(function(e){return e.id;});
   var pastQty=(S.s||[]).filter(function(s){return s.pid===pid&&pastEids.indexOf(s.eid)>=0;}).reduce(function(s,x){return s+x.qty;},0);
-  if(pastQty<=0)return totCost(p);
+  if(pastQty<=0)return adjTotCost(p);
   var remaining=pastQty,effectiveCost=0;
   var eds=p.editions||[];
   for(var j=0;j<eds.length;j++){
-    var ed=eds[j];
-    var edC=(p.costs||[]).reduce(function(s,c){return s+(c.perEdition&&c.perEdition[ed.id]?c.perEdition[ed.id]:0);},0);
-    var edO=ed.ordered||0;
+    var ed2=eds[j];
+    var edC=edAdjUC(p,ed2)*(ed2.ordered||0);
+    var edO=ed2.ordered||0;
     if(edO<=0){effectiveCost+=edC;continue;}
     if(remaining>=edO){remaining-=edO;}
-    else{effectiveCost+=edC-remaining*(edC/edO);remaining=0;}
+    else{effectiveCost+=edC-remaining*edAdjUC(p,ed2);remaining=0;}
   }
   return Math.max(0,Math.round(effectiveCost));
 }
@@ -1107,6 +1164,7 @@ function renderChart(){
   var visPids=allPids.filter(function(pid){return !anProdFilter||anProdFilter.has(pid);});
   if(!visPids.length){el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:18px;text-align:center;">表示する商品を選択してください</div>';el.style.height='';renderSoldoutTimeline(hrs,allPids,allSales);return;}
 
+  // 時間帯別データ集計
   var byPH={};
   visPids.forEach(function(pid){byPH[pid]={};hrs.forEach(function(h){byPH[pid][h]={m:0,c:0};});});
   allSales.filter(function(s){return visPids.includes(s.pid);}).forEach(function(s){
@@ -1122,97 +1180,165 @@ function renderChart(){
   var hasCumCount=modes.indexOf('cumCount')>=0;
   var hasCumTotalMoney=modes.indexOf('cumTotalMoney')>=0;
 
+  // 各最大値
   var mxC=Math.max.apply(null,hrs.map(function(h){return totByH[h].c;}).concat([1]));
   var cumMaxM=0,cumMaxC=0;
-  visPids.forEach(function(pid){var rm=0,rc=0;hrs.forEach(function(h){rm+=byPH[pid][h].m;rc+=byPH[pid][h].c;});if(rm>cumMaxM)cumMaxM=rm;if(rc>cumMaxC)cumMaxC=rc;});
+  visPids.forEach(function(pid){
+    var rm=0,rc=0;
+    hrs.forEach(function(h){rm+=byPH[pid][h].m;rc+=byPH[pid][h].c;});
+    if(rm>cumMaxM)cumMaxM=rm;if(rc>cumMaxC)cumMaxC=rc;
+  });
   var cumTotalMaxM=hrs.reduce(function(s,h){return s+totByH[h].m;},0);
   cumMaxM=Math.max(cumMaxM,1);cumMaxC=Math.max(cumMaxC,1);cumTotalMaxM=Math.max(cumTotalMaxM,1);
 
+  // 損益分岐金額
   var beLine=hasCumTotalMoney&&S.anMode!=='sales'?calcAnBreakeven(visPids,S.anEvId,S.anMode):0;
-  if(beLine>cumTotalMaxM)cumTotalMaxM=Math.round(beLine*1.15);
 
   var LEG_H=visPids.length>0?Math.ceil(visPids.length/3)*14+10:0;
   var LEG_H2=hasCumTotalMoney?18:0;
-  var W=320,H=200,pL=44,pR=W-10,pT=14,pB=H-20,gW=pR-pL,gH=pB-pT;
+  var W=320,H=200,pL=44,pR=hasCumTotalMoney&&(hasCount||hasCumCount)?W-28:W-10;
+  var pT=14,pB=H-20,gW=pR-pL,gH=pB-pT;
   var nH=hrs.length,slotW=nH>1?gW/nH:gW;
   function bx(i){return pL+i*slotW+slotW/2;}
   function gy(v,mx){return pT+gH-(v/mx)*gH;}
-
   var inner='';
   inner+=svgL(pL,pT,pL,pB,'var(--border)',1);
   inner+=svgL(pL,pB,pR,pB,'var(--border)',1);
   inner+=hrs.map(function(h,i){return svgT(bx(i),pB+12,h+'時',8,'var(--text3)','middle');}).join('');
 
-  // 左軸
-  var leftMx=hasCount?mxC:hasCumCount?cumMaxC:hasCumMoney?cumMaxM:hasCumTotalMoney?cumTotalMaxM:1;
-  var leftIsK=!hasCount&&!hasCumCount&&(hasCumMoney||hasCumTotalMoney);
-  [0,.25,.5,.75,1].forEach(function(r){
-    var y=pT+gH*(1-r);
-    var lbl=r===0?'0':(leftIsK?Math.round(r*leftMx/1000)+'k':Math.round(r*leftMx));
-    inner+=svgL(pL,y,pR,y,'var(--border)',.4);
-    inner+=svgT(pL-4,y+3,lbl,8,'var(--text3)','end');
-  });
-  if(hasCumMoney&&(hasCount||hasCumCount)){
-    [0,.25,.5,.75,1].forEach(function(r){var y=pT+gH*(1-r);inner+=svgT(pR+4,y+3,r===0?'0':Math.round(r*cumMaxM/1000)+'k',7,'var(--text2)','start');});
-  }
-
-  // 棒グラフ
-  if(hasCount){
-    hrs.forEach(function(h,hi){
-      var stackY=pB;
-      visPids.forEach(function(pid){
-        var v=byPH[pid][h].c;if(!v)return;
-        var bh=(v/mxC)*gH,col=pCol(allPids.indexOf(pid)),bw=slotW*0.65;
-        inner+=svgR(bx(hi)-bw/2,stackY-bh,bw,bh,col,.75,1);
-        if(bh>9)inner+=svgT(bx(hi),stackY-bh/2,v,7,'#fff','middle');
-        stackY-=bh;
-      });
-    });
-  }
-
-  // 累計金額（商品別）
-  if(hasCumMoney){
-    var gyM=function(v){return(hasCount||hasCumCount)?pT+gH-(v/cumMaxM)*gH:gy(v,cumMaxM);};
-    visPids.forEach(function(pid){
-      var col=pCol(allPids.indexOf(pid)),run=0;
-      var d=hrs.map(function(h,i){run+=byPH[pid][h].m;return(i===0?'M':'L')+bx(i)+','+gyM(run);}).join(' ');
-      inner+=svgP(d,col,2,'6,2');
-      run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].m;inner+=svgC(bx(i),gyM(run),3,col);});
-    });
-  }
-
-  // 累計部数
-  if(hasCumCount){
-    visPids.forEach(function(pid){
-      var col=pCol(allPids.indexOf(pid)),run=0;
-      var d=hrs.map(function(h,i){run+=byPH[pid][h].c;return(i===0?'M':'L')+bx(i)+','+gy(run,cumMaxC);}).join(' ');
-      inner+=svgP(d,col,hasCount?1.5:2);
-      run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].c;inner+=svgC(bx(i),gy(run,cumMaxC),2.5,col);});
-    });
-  }
-
-  // 累計売上金額（全商品合計・白実線）
   if(hasCumTotalMoney){
-    var gyT=function(v){return gy(v,cumTotalMaxM);};
+    // ============ デュアルY軸モード ============
+    // 左軸: 金額 (cumTotalMoney + beLine を考慮)
+    var leftMax=Math.max(cumTotalMaxM,beLine>0?Math.ceil(beLine*1.08):0,1);
+    // なるべくきりの良い数字に
+    var mag=Math.pow(10,Math.floor(Math.log10(leftMax)));
+    leftMax=Math.ceil(leftMax/mag)*mag;
+
+    // 右軸: 部数 (count or cumCount が有効な場合のみ)
+    var showRightAx=hasCount||hasCumCount;
+    var rightMax=showRightAx?Math.max(hasCount?mxC:0,hasCumCount?cumMaxC:0,1):1;
+
+    var gyL=function(v){return pT+gH-(v/leftMax)*gH;};
+    var gyR=function(v){return pT+gH-(v/rightMax)*gH;};
+
+    // 左軸ラベル (金額)
+    [0,.25,.5,.75,1].forEach(function(r){
+      var y=pT+gH*(1-r);
+      var lbl=r===0?'0':(leftMax>=10000?Math.round(r*leftMax/1000)+'k':Math.round(r*leftMax).toString());
+      inner+=svgL(pL,y,pR,y,'var(--border)',.4);
+      inner+=svgT(pL-4,y+3,lbl,8,'var(--text3)','end');
+    });
+
+    // 右軸ラベル (部数)
+    if(showRightAx){
+      [.25,.5,.75,1].forEach(function(r){
+        var y=pT+gH*(1-r);
+        inner+=svgT(W-8,y+3,Math.round(r*rightMax),7,'var(--cyan)','end');
+      });
+      inner+=svgT(W-8,pT+3,'部',7,'var(--cyan)','end');
+    }
+
+    // 棒グラフ (右軸=部数)
+    if(hasCount){
+      hrs.forEach(function(h,hi){
+        var stackY=pB;
+        visPids.forEach(function(pid){
+          var v=byPH[pid][h].c;if(!v)return;
+          var bh=(v/rightMax)*gH,col=pCol(allPids.indexOf(pid)),bw=slotW*0.65;
+          inner+=svgR(bx(hi)-bw/2,stackY-bh,bw,bh,col,.75,1);
+          if(bh>9)inner+=svgT(bx(hi),stackY-bh/2,v,7,'#fff','middle');
+          stackY-=bh;
+        });
+      });
+    }
+
+    // 累計部数 (右軸)
+    if(hasCumCount){
+      visPids.forEach(function(pid){
+        var col=pCol(allPids.indexOf(pid)),run=0;
+        var d=hrs.map(function(h,i){run+=byPH[pid][h].c;return(i===0?'M':'L')+bx(i)+','+gyR(run);}).join(' ');
+        inner+=svgP(d,col,hasCount?1.5:2);
+        run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].c;inner+=svgC(bx(i),gyR(run),2.5,col);});
+      });
+    }
+
+    // 累計金額(商品別) (左軸)
+    if(hasCumMoney){
+      visPids.forEach(function(pid){
+        var col=pCol(allPids.indexOf(pid)),run=0;
+        var d=hrs.map(function(h,i){run+=byPH[pid][h].m;return(i===0?'M':'L')+bx(i)+','+gyL(run);}).join(' ');
+        inner+=svgP(d,col,2,'6,2');
+        run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].m;inner+=svgC(bx(i),gyL(run),3,col);});
+      });
+    }
+
+    // 累計売上合計 (左軸, 白実線)
     var runT=0;
-    var dT=hrs.map(function(h,i){runT+=totByH[h].m;return(i===0?'M':'L')+bx(i)+','+gyT(runT);}).join(' ');
+    var dT=hrs.map(function(h,i){runT+=totByH[h].m;return(i===0?'M':'L')+bx(i)+','+gyL(runT);}).join(' ');
     inner+=svgP(dT,'#ffffff',2.5);
     runT=0;
     hrs.forEach(function(h,i){
       runT+=totByH[h].m;
-      inner+=svgC(bx(i),gyT(runT),3.5,'#ffffff');
+      inner+=svgC(bx(i),gyL(runT),3.5,'#ffffff');
       if(runT>0){
-        var lbl=runT>=10000?Math.round(runT/1000)+'k':runT>=1000?Math.round(runT/1000)+'k':''+runT;
-        inner+=svgT(bx(i),gyT(runT)-6,lbl,8,'#ffffff','middle');
+        var lbl=runT>=10000?Math.round(runT/1000)+'k':(runT>=1000?Math.round(runT/100)/10+'k':''+runT);
+        inner+=svgT(bx(i),gyL(runT)-7,lbl,8,'#ffffff','middle');
       }
     });
-    // 損益分岐水平線
+
+    // 損益分岐水平線 (左軸, 黄)
     if(beLine>0){
-      var beY=gyT(beLine);
+      var beY=gyL(beLine);
       inner+=svgL(pL,beY,pR,beY,'var(--yellow)',1.5,'4,3');
-      var beK=beLine>=1000?Math.round(beLine/1000)+'k':''+beLine;
+      var beK=beLine>=10000?Math.round(beLine/1000)+'k':beLine.toLocaleString();
       inner+=svgT(pR-2,beY-3,'¥'+beK,8,'var(--yellow)','end');
       inner+=svgT(pL+2,beY-3,'損益分岐',8,'var(--yellow)','start');
+    }
+
+  } else {
+    // ============ 通常モード (既存ロジック) ============
+    var leftMx=hasCount?mxC:hasCumCount?cumMaxC:hasCumMoney?cumMaxM:1;
+    var leftIsK=!hasCount&&!hasCumCount&&hasCumMoney;
+    [0,.25,.5,.75,1].forEach(function(r){
+      var y=pT+gH*(1-r);
+      var lbl=r===0?'0':(leftIsK?Math.round(r*leftMx/1000)+'k':Math.round(r*leftMx));
+      inner+=svgL(pL,y,pR,y,'var(--border)',.4);
+      inner+=svgT(pL-4,y+3,lbl,8,'var(--text3)','end');
+    });
+    if(hasCumMoney&&(hasCount||hasCumCount)){
+      [0,.25,.5,.75,1].forEach(function(r){
+        var y=pT+gH*(1-r);
+        inner+=svgT(pR+4,y+3,r===0?'0':Math.round(r*cumMaxM/1000)+'k',7,'var(--text2)','start');
+      });
+    }
+    if(hasCount){
+      hrs.forEach(function(h,hi){
+        var stackY=pB;
+        visPids.forEach(function(pid){
+          var v=byPH[pid][h].c;if(!v)return;
+          var bh=(v/mxC)*gH,col=pCol(allPids.indexOf(pid)),bw=slotW*0.65;
+          inner+=svgR(bx(hi)-bw/2,stackY-bh,bw,bh,col,.75,1);
+          if(bh>9)inner+=svgT(bx(hi),stackY-bh/2,v,7,'#fff','middle');
+          stackY-=bh;
+        });
+      });
+    }
+    if(hasCumMoney){
+      var gyM2=function(v){return(hasCount||hasCumCount)?pT+gH-(v/cumMaxM)*gH:gy(v,cumMaxM);};
+      visPids.forEach(function(pid){
+        var col=pCol(allPids.indexOf(pid)),run=0;
+        var d=hrs.map(function(h,i){run+=byPH[pid][h].m;return(i===0?'M':'L')+bx(i)+','+gyM2(run);}).join(' ');
+        inner+=svgP(d,col,2,'6,2');
+        run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].m;inner+=svgC(bx(i),gyM2(run),3,col);});
+      });
+    }
+    if(hasCumCount){
+      visPids.forEach(function(pid){
+        var col=pCol(allPids.indexOf(pid)),run=0;
+        var d=hrs.map(function(h,i){run+=byPH[pid][h].c;return(i===0?'M':'L')+bx(i)+','+gy(run,cumMaxC);}).join(' ');
+        inner+=svgP(d,col,hasCount?1.5:2);
+        run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].c;inner+=svgC(bx(i),gy(run,cumMaxC),2.5,col);});
+      });
     }
   }
 
@@ -1230,11 +1356,10 @@ function renderChart(){
     var extraY=legY+Math.ceil(visPids.length/cols)*legRowH+2;
     legSvg+='<rect x="'+legX+'" y="'+(extraY+2)+'" width="16" height="3" fill="#ffffff" rx="1"/>';
     legSvg+=svgT(legX+20,extraY+8,'累計売上合計',9,'#ffffff','start');
-    if(beLine>0){
-      var mode2=S.anMode||'cost';
-      var beLbl2=mode2==='full'?'損益分岐(原価+経費)':'損益分岐(原価のみ)';
+    if(beLine>0&&S.anMode!=='sales'){
+      var beLbl=S.anMode==='full'?'損益分岐(原価+経費)':'損益分岐(原価のみ)';
       legSvg+='<line x1="'+(legX+100)+'" y1="'+(extraY+4)+'" x2="'+(legX+116)+'" y2="'+(extraY+4)+'" stroke="var(--yellow)" stroke-width="1.5" stroke-dasharray="4,2"/>';
-      legSvg+=svgT(legX+120,extraY+8,beLbl2,9,'var(--yellow)','start');
+      legSvg+=svgT(legX+120,extraY+8,beLbl,9,'var(--yellow)','start');
     }
   }
 
@@ -1317,7 +1442,7 @@ function gSV(pid,f,def){return simOvr[pid]&&simOvr[pid][f]!==undefined?simOvr[pi
 function getSimCost(p){
   var ev=S.e.find(function(e){return e.id===S.simEvId;});
   var expAmt=(ev&&ev.expenses||[]).reduce(function(s,e){return s+e.amount;},0);
-  var base=totCost(p);
+  var base=adjTotCost(p);
   return S.simMode==='sales'?0:S.simMode==='full'?base+expAmt:base;
 }
 function renderSimDet(){
