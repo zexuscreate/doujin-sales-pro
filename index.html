@@ -425,6 +425,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
         <button class="togb active" id="yCount" onclick="togYA('count')" style="flex:1;min-width:80px;text-align:center;padding:6px 4px;">📦 時間帯別部数</button>
         <button class="togb" id="yCumMoney" onclick="togYA('cumMoney')" style="flex:1;min-width:80px;text-align:center;padding:6px 4px;">📈 累計金額</button>
         <button class="togb" id="yCumCount" onclick="togYA('cumCount')" style="flex:1;min-width:80px;text-align:center;padding:6px 4px;">📈 累計部数</button>
+        <button class="togb" id="yCumTotalMoney" onclick="togYA('cumTotalMoney')" style="flex:1;min-width:80px;text-align:center;padding:6px 4px;">💹 累計売上金額</button>
       </div>
       <div style="display:flex;gap:5px;margin-bottom:7px;align-items:center;flex-wrap:wrap;">
         <span style="font-size:11px;color:var(--text2);">X軸:</span>
@@ -544,14 +545,14 @@ function totCost(p){
     return s+(c.amount||0);
   },0);
 }
-function unitCost(p){var o=totOrd(p);return o>0?totCost(p)/o:0;}
+function unitCost(p){var o=totOrd(p);return o>0?Math.round(totCost(p)/o):0;}
 function evProds(eid){var ev=S.e.find(function(e){return e.id===eid;});if(!ev)return[];return S.p.filter(function(p){return(ev.productIds||[]).includes(p.id);});}
 var PCOLS=['#7c6af7','#22d3ee','#4ade80','#fbbf24','#f472b6','#f87171','#60a5fa','#a78bfa'];
 function pCol(i){return PCOLS[i%PCOLS.length];}
 
 // ================================================================ SAMPLE DATA
 function initSample(){
-  var ev={id:uid(),name:'例:コミティア',date:'2026-05-05',expenses:[{id:uid(),name:'参加費',amount:8000},{id:uid(),name:'交通費',amount:2000}],isLocked:false,productIds:[]};
+  var ev={id:uid(),name:'例：コミケ',date:'2026-05-05',expenses:[{id:uid(),name:'参加費',amount:8000},{id:uid(),name:'交通費',amount:2000}],isLocked:false,productIds:[]};
   function mkP(title,emoji,price,shopPrice,stock,ordAmt,costName){
     var eid1=uid();
     return{id:uid(),title:title,emoji:emoji,price:price,shopPrice:shopPrice,stock:stock,sortNum:0,coverImg:null,
@@ -1003,7 +1004,7 @@ function renderAN(){
     if(btn)btn.classList.toggle('active',k===S.anMode);
   });
   if(!S.yAxisSet)S.yAxisSet=new Set(['count']);
-  ['count','cumMoney','cumCount'].forEach(function(k){
+  ['count','cumMoney','cumCount','cumTotalMoney'].forEach(function(k){
     var btn=document.getElementById('y'+k.charAt(0).toUpperCase()+k.slice(1));
     if(btn)btn.classList.toggle('active',S.yAxisSet.has(k));
   });
@@ -1024,9 +1025,12 @@ function renderProdCheckboxes(){
   if(!anProdFilter)anProdFilter=new Set(pids);
   el.innerHTML=pids.map(function(pid,i){
     var p=S.p.find(function(x){return x.id===pid;}),on=anProdFilter.has(pid),col=pCol(i);
+    var amt=sales.filter(function(s){return s.pid===pid;}).reduce(function(s,x){return s+x.price*x.qty;},0);
     return '<div class="pchk '+(on?'on':'')+'" onclick="togProdFilter(\''+pid+'\')" style="'+(on?'border-color:'+col+';background:'+col+'22;':'')+'">'
       +'<div class="pchk-dot" style="background:'+col+';'+(on?'':'opacity:.4')+'"></div>'
-      +'<span>'+(p?p.emoji||'📖':'')+(p?' '+p.title:'不明')+'</span></div>';
+      +'<span>'+(p?p.emoji||'📖':'')+(p?' '+p.title:'不明')+'</span>'
+      +'<span style="margin-left:4px;font-family:\'Space Mono\',monospace;font-size:10px;color:'+(on?col:'var(--text3)')+'">¥'+amt.toLocaleString()+'</span>'
+      +'</div>';
   }).join('');
 }
 function togProdFilter(pid){if(!anProdFilter)anProdFilter=new Set(fSales().map(function(s){return s.pid;}));if(anProdFilter.has(pid))anProdFilter.delete(pid);else anProdFilter.add(pid);renderProdCheckboxes();renderChart();renderHist();}
@@ -1053,11 +1057,39 @@ function togYA(m){
   if(!S.yAxisSet)S.yAxisSet=new Set(['count']);
   if(S.yAxisSet.has(m))S.yAxisSet.delete(m);else S.yAxisSet.add(m);
   if(S.yAxisSet.size===0)S.yAxisSet.add(m);
-  ['count','cumMoney','cumCount'].forEach(function(k){
+  ['count','cumMoney','cumCount','cumTotalMoney'].forEach(function(k){
     var btn=document.getElementById('y'+k.charAt(0).toUpperCase()+k.slice(1));
     if(btn)btn.classList.toggle('active',S.yAxisSet.has(k));
   });
   renderChart();
+}
+// 版ごとの過去回収済み原価を差し引いた実効原価
+function effectiveCostForEvent(pid,currentEventId){
+  var p=S.p.find(function(x){return x.id===pid;});
+  if(!p)return 0;
+  var currentEv=S.e.find(function(e){return e.id===currentEventId;});
+  if(!currentEv)return totCost(p);
+  var currentDate=currentEv.date;
+  var pastEids=S.e.filter(function(e){return e.date<currentDate;}).map(function(e){return e.id;});
+  var pastQty=(S.s||[]).filter(function(s){return s.pid===pid&&pastEids.indexOf(s.eid)>=0;}).reduce(function(s,x){return s+x.qty;},0);
+  if(pastQty<=0)return totCost(p);
+  var remaining=pastQty,effectiveCost=0;
+  var eds=p.editions||[];
+  for(var j=0;j<eds.length;j++){
+    var ed=eds[j];
+    var edC=(p.costs||[]).reduce(function(s,c){return s+(c.perEdition&&c.perEdition[ed.id]?c.perEdition[ed.id]:0);},0);
+    var edO=ed.ordered||0;
+    if(edO<=0){effectiveCost+=edC;continue;}
+    if(remaining>=edO){remaining-=edO;}
+    else{effectiveCost+=edC-remaining*(edC/edO);remaining=0;}
+  }
+  return Math.max(0,Math.round(effectiveCost));
+}
+function calcAnBreakeven(visPids,anEvId,mode){
+  if(mode==='sales')return 0;
+  var totalCost=visPids.reduce(function(s,pid){return s+effectiveCostForEvent(pid,anEvId);},0);
+  if(mode==='full'){var ev=S.e.find(function(e){return e.id===anEvId;});totalCost+=(ev&&ev.expenses||[]).reduce(function(s,e){return s+e.amount;},0);}
+  return Math.round(totalCost);
 }
 function svgL(x1,y1,x2,y2,stroke,sw,dash){return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+stroke+'" stroke-width="'+(sw||1)+'"'+(dash?' stroke-dasharray="'+dash+'"':'')+'/>'}
 function svgT(x,y,txt,size,fill,anchor){return '<text x="'+x+'" y="'+y+'" font-size="'+(size||9)+'" fill="'+(fill||'var(--text3)')+'" text-anchor="'+(anchor||'middle')+'">'+txt+'</text>'}
@@ -1074,37 +1106,140 @@ function renderChart(){
   var allPids=[...new Set(allSales.map(function(s){return s.pid;}))];
   var visPids=allPids.filter(function(pid){return !anProdFilter||anProdFilter.has(pid);});
   if(!visPids.length){el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:18px;text-align:center;">表示する商品を選択してください</div>';el.style.height='';renderSoldoutTimeline(hrs,allPids,allSales);return;}
+
   var byPH={};
   visPids.forEach(function(pid){byPH[pid]={};hrs.forEach(function(h){byPH[pid][h]={m:0,c:0};});});
   allSales.filter(function(s){return visPids.includes(s.pid);}).forEach(function(s){
-    var hh=new Date(s.ts).getHours();if(byPH[s.pid]&&byPH[s.pid][hh]!==undefined){byPH[s.pid][hh].m+=s.price*s.qty;byPH[s.pid][hh].c+=s.qty;}
+    var hh=new Date(s.ts).getHours();
+    if(byPH[s.pid]&&byPH[s.pid][hh]!==undefined){byPH[s.pid][hh].m+=s.price*s.qty;byPH[s.pid][hh].c+=s.qty;}
   });
   var totByH={};hrs.forEach(function(h){totByH[h]={m:0,c:0};});
   visPids.forEach(function(pid){hrs.forEach(function(h){totByH[h].m+=byPH[pid][h].m;totByH[h].c+=byPH[pid][h].c;});});
+
+  var modes=[...S.yAxisSet];
+  var hasCount=modes.indexOf('count')>=0;
+  var hasCumMoney=modes.indexOf('cumMoney')>=0;
+  var hasCumCount=modes.indexOf('cumCount')>=0;
+  var hasCumTotalMoney=modes.indexOf('cumTotalMoney')>=0;
+
+  var mxC=Math.max.apply(null,hrs.map(function(h){return totByH[h].c;}).concat([1]));
+  var cumMaxM=0,cumMaxC=0;
+  visPids.forEach(function(pid){var rm=0,rc=0;hrs.forEach(function(h){rm+=byPH[pid][h].m;rc+=byPH[pid][h].c;});if(rm>cumMaxM)cumMaxM=rm;if(rc>cumMaxC)cumMaxC=rc;});
+  var cumTotalMaxM=hrs.reduce(function(s,h){return s+totByH[h].m;},0);
+  cumMaxM=Math.max(cumMaxM,1);cumMaxC=Math.max(cumMaxC,1);cumTotalMaxM=Math.max(cumTotalMaxM,1);
+
+  var beLine=hasCumTotalMoney&&S.anMode!=='sales'?calcAnBreakeven(visPids,S.anEvId,S.anMode):0;
+  if(beLine>cumTotalMaxM)cumTotalMaxM=Math.round(beLine*1.15);
+
   var LEG_H=visPids.length>0?Math.ceil(visPids.length/3)*14+10:0;
+  var LEG_H2=hasCumTotalMoney?18:0;
   var W=320,H=200,pL=44,pR=W-10,pT=14,pB=H-20,gW=pR-pL,gH=pB-pT;
   var nH=hrs.length,slotW=nH>1?gW/nH:gW;
   function bx(i){return pL+i*slotW+slotW/2;}
   function gy(v,mx){return pT+gH-(v/mx)*gH;}
-  var modes=[...S.yAxisSet];
+
   var inner='';
-  inner+=svgL(pL,pT,pL,pB,'var(--border)',1);inner+=svgL(pL,pB,pR,pB,'var(--border)',1);
+  inner+=svgL(pL,pT,pL,pB,'var(--border)',1);
+  inner+=svgL(pL,pB,pR,pB,'var(--border)',1);
   inner+=hrs.map(function(h,i){return svgT(bx(i),pB+12,h+'時',8,'var(--text3)','middle');}).join('');
-  var mxC=Math.max.apply(null,hrs.map(function(h){return totByH[h].c;}).concat([1]));
-  var cumMaxM=0,cumMaxC=0;
-  visPids.forEach(function(pid){var rm=0,rc=0;hrs.forEach(function(h){rm+=byPH[pid][h].m;rc+=byPH[pid][h].c;});if(rm>cumMaxM)cumMaxM=rm;if(rc>cumMaxC)cumMaxC=rc;});
-  cumMaxM=Math.max(cumMaxM,1);cumMaxC=Math.max(cumMaxC,1);
-  var hasCount=modes.indexOf('count')>=0,hasCumMoney=modes.indexOf('cumMoney')>=0,hasCumCount=modes.indexOf('cumCount')>=0;
-  var leftMx=hasCount?mxC:hasCumCount?cumMaxC:hasCumMoney?cumMaxM:1;
-  var leftIsK=!hasCount&&!hasCumCount&&hasCumMoney;
-  [0,.25,.5,.75,1].forEach(function(r){var y=pT+gH*(1-r);var lbl=r===0?'0':(leftIsK?Math.round(r*leftMx/1000)+'k':Math.round(r*leftMx));inner+=svgL(pL,y,pR,y,'var(--border)',.4);inner+=svgT(pL-4,y+3,lbl,8,'var(--text3)','end');});
-  if(hasCumMoney&&(hasCount||hasCumCount)){[0,.25,.5,.75,1].forEach(function(r){var y=pT+gH*(1-r);inner+=svgT(pR+4,y+3,r===0?'0':Math.round(r*cumMaxM/1000)+'k',7,'var(--text2)','start');});}
-  if(hasCount){hrs.forEach(function(h,hi){var stackY=pB;visPids.forEach(function(pid){var v=byPH[pid][h].c;if(!v)return;var bh=(v/mxC)*gH,col=pCol(allPids.indexOf(pid)),bw=slotW*0.65;inner+=svgR(bx(hi)-bw/2,stackY-bh,bw,bh,col,.75,1);if(bh>9)inner+=svgT(bx(hi),stackY-bh/2,v,7,'#fff','middle');stackY-=bh;});});}
-  if(hasCumMoney){function gyM(v){return(hasCount||hasCumCount)?pT+gH-(v/cumMaxM)*gH:gy(v,cumMaxM);}visPids.forEach(function(pid){var col=pCol(allPids.indexOf(pid)),run=0;var d=hrs.map(function(h,i){run+=byPH[pid][h].m;return(i===0?'M':'L')+bx(i)+','+gyM(run);}).join(' ');inner+=svgP(d,col,2,'6,2');run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].m;inner+=svgC(bx(i),gyM(run),3,col);});});}
-  if(hasCumCount){visPids.forEach(function(pid){var col=pCol(allPids.indexOf(pid)),run=0;var d=hrs.map(function(h,i){run+=byPH[pid][h].c;return(i===0?'M':'L')+bx(i)+','+gy(run,cumMaxC);}).join(' ');inner+=svgP(d,col,hasCount?1.5:2);run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].c;inner+=svgC(bx(i),gy(run,cumMaxC),2.5,col);});});}
+
+  // 左軸
+  var leftMx=hasCount?mxC:hasCumCount?cumMaxC:hasCumMoney?cumMaxM:hasCumTotalMoney?cumTotalMaxM:1;
+  var leftIsK=!hasCount&&!hasCumCount&&(hasCumMoney||hasCumTotalMoney);
+  [0,.25,.5,.75,1].forEach(function(r){
+    var y=pT+gH*(1-r);
+    var lbl=r===0?'0':(leftIsK?Math.round(r*leftMx/1000)+'k':Math.round(r*leftMx));
+    inner+=svgL(pL,y,pR,y,'var(--border)',.4);
+    inner+=svgT(pL-4,y+3,lbl,8,'var(--text3)','end');
+  });
+  if(hasCumMoney&&(hasCount||hasCumCount)){
+    [0,.25,.5,.75,1].forEach(function(r){var y=pT+gH*(1-r);inner+=svgT(pR+4,y+3,r===0?'0':Math.round(r*cumMaxM/1000)+'k',7,'var(--text2)','start');});
+  }
+
+  // 棒グラフ
+  if(hasCount){
+    hrs.forEach(function(h,hi){
+      var stackY=pB;
+      visPids.forEach(function(pid){
+        var v=byPH[pid][h].c;if(!v)return;
+        var bh=(v/mxC)*gH,col=pCol(allPids.indexOf(pid)),bw=slotW*0.65;
+        inner+=svgR(bx(hi)-bw/2,stackY-bh,bw,bh,col,.75,1);
+        if(bh>9)inner+=svgT(bx(hi),stackY-bh/2,v,7,'#fff','middle');
+        stackY-=bh;
+      });
+    });
+  }
+
+  // 累計金額（商品別）
+  if(hasCumMoney){
+    var gyM=function(v){return(hasCount||hasCumCount)?pT+gH-(v/cumMaxM)*gH:gy(v,cumMaxM);};
+    visPids.forEach(function(pid){
+      var col=pCol(allPids.indexOf(pid)),run=0;
+      var d=hrs.map(function(h,i){run+=byPH[pid][h].m;return(i===0?'M':'L')+bx(i)+','+gyM(run);}).join(' ');
+      inner+=svgP(d,col,2,'6,2');
+      run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].m;inner+=svgC(bx(i),gyM(run),3,col);});
+    });
+  }
+
+  // 累計部数
+  if(hasCumCount){
+    visPids.forEach(function(pid){
+      var col=pCol(allPids.indexOf(pid)),run=0;
+      var d=hrs.map(function(h,i){run+=byPH[pid][h].c;return(i===0?'M':'L')+bx(i)+','+gy(run,cumMaxC);}).join(' ');
+      inner+=svgP(d,col,hasCount?1.5:2);
+      run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].c;inner+=svgC(bx(i),gy(run,cumMaxC),2.5,col);});
+    });
+  }
+
+  // 累計売上金額（全商品合計・白実線）
+  if(hasCumTotalMoney){
+    var gyT=function(v){return gy(v,cumTotalMaxM);};
+    var runT=0;
+    var dT=hrs.map(function(h,i){runT+=totByH[h].m;return(i===0?'M':'L')+bx(i)+','+gyT(runT);}).join(' ');
+    inner+=svgP(dT,'#ffffff',2.5);
+    runT=0;
+    hrs.forEach(function(h,i){
+      runT+=totByH[h].m;
+      inner+=svgC(bx(i),gyT(runT),3.5,'#ffffff');
+      if(runT>0){
+        var lbl=runT>=10000?Math.round(runT/1000)+'k':runT>=1000?Math.round(runT/1000)+'k':''+runT;
+        inner+=svgT(bx(i),gyT(runT)-6,lbl,8,'#ffffff','middle');
+      }
+    });
+    // 損益分岐水平線
+    if(beLine>0){
+      var beY=gyT(beLine);
+      inner+=svgL(pL,beY,pR,beY,'var(--yellow)',1.5,'4,3');
+      var beK=beLine>=1000?Math.round(beLine/1000)+'k':''+beLine;
+      inner+=svgT(pR-2,beY-3,'¥'+beK,8,'var(--yellow)','end');
+      inner+=svgT(pL+2,beY-3,'損益分岐',8,'var(--yellow)','start');
+    }
+  }
+
+  // 凡例
   var legSvg='',cols=3,legRowH=13,legX=pL,legY=H+6;
-  visPids.forEach(function(pid,li){var col=pCol(allPids.indexOf(pid));var p=S.p.find(function(x){return x.id===pid;});var lbl=p?(p.emoji||'')+(p.title||'?').substr(0,5):'?';var row=Math.floor(li/cols),col2=li%cols;var lx=legX+col2*(gW/cols),ly=legY+row*legRowH;legSvg+=svgR(lx,ly+1,8,8,col,1,2)+svgT(lx+10,ly+8,lbl,9,col,'start');});
-  var totalH=H+LEG_H+4;el.style.height=totalH+'px';
+  visPids.forEach(function(pid,li){
+    var col=pCol(allPids.indexOf(pid));
+    var p=S.p.find(function(x){return x.id===pid;});
+    var lbl=p?(p.emoji||'')+(p.title||'?').substr(0,5):'?';
+    var row=Math.floor(li/cols),col2=li%cols;
+    var lx=legX+col2*(gW/cols),ly=legY+row*legRowH;
+    legSvg+=svgR(lx,ly+1,8,8,col,1,2)+svgT(lx+10,ly+8,lbl,9,col,'start');
+  });
+  if(hasCumTotalMoney){
+    var extraY=legY+Math.ceil(visPids.length/cols)*legRowH+2;
+    legSvg+='<rect x="'+legX+'" y="'+(extraY+2)+'" width="16" height="3" fill="#ffffff" rx="1"/>';
+    legSvg+=svgT(legX+20,extraY+8,'累計売上合計',9,'#ffffff','start');
+    if(beLine>0){
+      var mode2=S.anMode||'cost';
+      var beLbl2=mode2==='full'?'損益分岐(原価+経費)':'損益分岐(原価のみ)';
+      legSvg+='<line x1="'+(legX+100)+'" y1="'+(extraY+4)+'" x2="'+(legX+116)+'" y2="'+(extraY+4)+'" stroke="var(--yellow)" stroke-width="1.5" stroke-dasharray="4,2"/>';
+      legSvg+=svgT(legX+120,extraY+8,beLbl2,9,'var(--yellow)','start');
+    }
+  }
+
+  var totalH=H+LEG_H+LEG_H2+4;
+  el.style.height=totalH+'px';
   el.innerHTML='<svg viewBox="0 0 '+W+' '+totalH+'" style="width:100%;height:100%;">'+inner+legSvg+'</svg>';
   renderSoldoutTimeline(hrs,allPids,allSales);
 }
