@@ -10,7 +10,6 @@
 <meta name="theme-color" content="#0a0a0f">
 <link rel="manifest" href="manifest.json">
 <title>レジろぐ</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Zen+Maru+Gothic:wght@500;700&family=Dela+Gothic+One&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -311,195 +310,43 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 <!-- ================================================================ LOGIN SCREEN -->
 <div id="loginScreen">
   <div style="font-family:'Dela Gothic One',cursive;font-size:44px;letter-spacing:5px;background:linear-gradient(135deg,#7c6af7,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;">レジろぐ</div>
-  <div style="font-family:'Zen Maru Gothic',sans-serif;font-size:13px;color:var(--text2);margin-bottom:40px;letter-spacing:2px;">同人誌レジ＆売上記録アプリ</div>
+  <div style="font-family:'Zen Maru Gothic',sans-serif;font-size:13px;color:var(--text2);margin-bottom:32px;letter-spacing:2px;">同人誌レジ＆売上記録アプリ</div>
   <div style="width:100%;max-width:340px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;">
     <div id="loginErr" style="display:none;background:rgba(248,113,113,.15);border:1px solid var(--red);border-radius:8px;padding:10px;margin-bottom:14px;font-size:12px;color:var(--red);"></div>
-    <button onclick="loginWithGoogle()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:13px;background:#fff;color:#333;border:1px solid #ddd;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;margin-bottom:16px;">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      Googleでログイン
+
+    <!-- ゲストモード (一番目立つ) -->
+    <button onclick="startGuestMode()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;letter-spacing:1px;">
+      🚀 すぐに使う（ゲストモード）
     </button>
+    <div style="font-size:11px;color:var(--text3);text-align:center;margin-bottom:18px;">データはこのブラウザにのみ保存されます</div>
+
+    <!-- ローカル保存モード -->
+    <button onclick="startLocalSavedMode()" style="width:100%;padding:11px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer;margin-bottom:20px;">
+      💾 ローカル保存モード（このブラウザに保存）
+    </button>
+
+    <!-- 区切り -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
       <div style="flex:1;height:1px;background:var(--border);"></div>
-      <span style="font-size:11px;color:var(--text3);">またはメールで</span>
+      <span style="font-size:11px;color:var(--text3);">アカウントでログイン（クラウド同期）</span>
       <div style="flex:1;height:1px;background:var(--border);"></div>
     </div>
-    <div style="display:flex;gap:4px;margin-bottom:16px;background:var(--bg3);border-radius:8px;padding:3px;">
-      <button id="tabLogin" onclick="switchAuthTab('login')" style="flex:1;padding:7px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;">ログイン</button>
-      <button id="tabSignup" onclick="switchAuthTab('signup')" style="flex:1;padding:7px;border:none;border-radius:6px;background:transparent;color:var(--text2);font-size:13px;cursor:pointer;">新規登録</button>
-    </div>
-    <div class="fg" style="margin-bottom:10px;"><input class="fi" id="authEmail" type="email" placeholder="メールアドレス" style="font-size:14px;padding:11px 12px;"></div>
-    <div class="fg" style="margin-bottom:16px;"><input class="fi" id="authPass" type="password" placeholder="パスワード（6文字以上）" style="font-size:14px;padding:11px 12px;"></div>
-    <button id="authSubmitBtn" onclick="submitAuth()" style="width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">ログイン</button>
-    <div id="forgotArea" style="text-align:center;margin-top:12px;">
-      <button onclick="resetPassword()" style="background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;text-decoration:underline;">パスワードをお忘れの方</button>
-    </div>
-  </div>
-  <div style="margin-top:20px;font-size:11px;color:var(--text3);text-align:center;">データはSupabaseクラウドに安全に保存されます</div>
-</div>
 
-<!-- ================================================================ MAIN APP -->
-<div id="mainApp" style="display:none;">
-<div class="header">
-  <div class="htitle">📚 DOUJIN Regi Log</div>
-  <span class="sdot" id="sdot"></span>
-  <button class="ibt" onclick="toggleTheme()" id="themeBtn">☀️</button>
-  <button class="hbtn" id="userBtn" onclick="showUserMenu()">👤</button>
-</div>
+    <!-- Google ログイン -->
+    <button id="googleLoginBtn" onclick="tryLoginWithGoogle()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;background:#fff;color:#333;border:1px solid #ddd;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;margin-bottom:14px;">
+      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Googleでログイン
+    </button>
 
-<div class="mc">
-  <!-- REGISTER -->
-  <div class="page active" id="page-register">
-    <div class="esel" id="evSel"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;">
-      <div style="font-size:12px;color:var(--text2);" id="regEvName">イベントを選択</div>
-      <div class="vtog">
-        <button class="vb active" id="vbCard" onclick="setVM('card')">⊞</button>
-        <button class="vb" id="vbList" onclick="setVM('list')">☰</button>
-      </div>
+    <!-- メール/パスワード -->
+    <div style="display:flex;border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-bottom:14px;">
+      <button id="tabLogin" onclick="switchAuthTab('login')" style="flex:1;padding:8px;font-size:12px;cursor:pointer;border:none;background:var(--accent);color:#fff;">ログイン</button>
+      <button id="tabSignup" onclick="switchAuthTab('signup')" style="flex:1;padding:8px;font-size:12px;cursor:pointer;border:none;background:transparent;color:var(--text2);">新規登録</button>
     </div>
-    <div id="prodDisp"></div>
-    <div class="cob">
-      <div class="tod"><span class="tol">合計金額</span><span class="toa" id="totAmt">¥0</span></div>
-      <div class="qcash">
-        <button class="qcb" onclick="setPP(500)">500</button>
-        <button class="qcb" onclick="setPP(1000)">1,000</button>
-        <button class="qcb" onclick="setPP(5000)">5,000</button>
-        <button class="qcb" onclick="setPP(10000)">10,000</button>
-        <button class="qcb" onclick="openNP('prepay')">⌨</button>
-      </div>
-      <div class="chdsp" id="chDisp">お釣り: <span class="cha">-</span></div>
-      <div style="display:flex;gap:7px;">
-        <button class="btn bg" style="flex:.4;" onclick="resetCart()">取消</button>
-        <button class="btn bs bfull" style="flex:1;" onclick="confirmSale()">✓ 会計確定</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- PRODUCTS -->
-  <div class="page" id="page-products">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <h2 style="font-size:16px;font-weight:700;">商品管理</h2>
-      <div style="display:flex;gap:5px;">
-        <button class="btn bg bsm" id="simpleUCBtn" onclick="toggleSimpleUC()">単純原価 表示</button>
-        <button class="btn bg bsm" onclick="dlTpl('products')">📋 テンプレ</button>
-        <button class="btn bg bsm" onclick="importCSV('products')">📥 CSV取込</button>
-        <button class="btn bp bsm" onclick="openAddProduct()">＋ 追加</button>
-      </div>
-    </div>
-    <div id="pmList"></div>
-  </div>
-
-  <!-- EVENTS -->
-  <div class="page" id="page-events">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <h2 style="font-size:16px;font-weight:700;">イベント管理</h2>
-      <div style="display:flex;gap:5px;">
-        <button class="btn bg bsm" onclick="dlTpl('events')">📋 テンプレ</button>
-        <button class="btn bg bsm" onclick="importCSV('events')">📥 CSV取込</button>
-        <button class="btn bp bsm" onclick="openAddEvent()">＋ 追加</button>
-      </div>
-    </div>
-    <div id="evList"></div>
-  </div>
-
-  <!-- ANALYTICS -->
-  <div class="page" id="page-analytics">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;">
-      <h2 style="font-size:16px;font-weight:700;">売上分析</h2>
-      <div style="display:flex;gap:5px;">
-        <button class="btn bg bsm" onclick="dlTpl('analytics')">📋 テンプレ</button>
-        <button class="btn bg bsm" onclick="exportAnalytics()">📤 CSV出力</button>
-        <button class="btn bd bsm" onclick="confirmResetSales()">🗑 リセット</button>
-      </div>
-    </div>
-    <div class="esel" id="anEvSel"></div>
-    <!-- 損益計算モード -->
-    <div class="tog an-modes" id="anModeBar">
-      <button class="togb active" id="anM_cost" onclick="setAnMode('cost')">💴 単純損益(原価のみ)</button>
-      <button class="togb" id="anM_full" onclick="setAnMode('full')">💴+🎪 実質損益(経費込み)</button>
-      <button class="togb" id="anM_sales" onclick="setAnMode('sales')">💰 売上のみ</button>
-    </div>
-    <div class="sgrid" id="statsGrid"></div>
-    <div class="card">
-      <div class="ch"><span class="ct">時間別グラフ</span></div>
-      <div class="tog" style="margin-bottom:10px;flex-wrap:wrap;">
-        <button class="togb active" id="yCount" onclick="togYA('count')" style="flex:1;min-width:80px;text-align:center;padding:6px 4px;">📦 時間帯別部数</button>
-        <button class="togb" id="yCumMoney" onclick="togYA('cumMoney')" style="flex:1;min-width:80px;text-align:center;padding:6px 4px;">📈 累計金額</button>
-        <button class="togb" id="yCumCount" onclick="togYA('cumCount')" style="flex:1;min-width:80px;text-align:center;padding:6px 4px;">📈 累計部数</button>
-        <button class="togb" id="yCumTotalMoney" onclick="togYA('cumTotalMoney')" style="flex:1;min-width:80px;text-align:center;padding:6px 4px;">💹 累計売上金額</button>
-      </div>
-      <div style="display:flex;gap:5px;margin-bottom:7px;align-items:center;flex-wrap:wrap;">
-        <span style="font-size:11px;color:var(--text2);">X軸:</span>
-        <input type="number" id="xS" value="10" min="0" max="23" style="width:46px;font-size:11px;padding:2px 4px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);" onchange="renderChart()">
-        時〜
-        <input type="number" id="xE" value="16" min="0" max="23" style="width:46px;font-size:11px;padding:2px 4px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);" onchange="renderChart()">
-        時
-      </div>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">表示商品:</div>
-      <div class="prod-checks" id="prodChecks"></div>
-      <div id="salesCh" style="width:100%;height:220px;"></div>
-      <div id="soldoutTimeline" style="margin-top:8px;"></div>
-    </div>
-    <div class="card"><div class="ch"><span class="ct">商品別シェア</span></div><div id="shareCh" style="height:155px;"></div></div>
-    <div class="card"><div class="ch"><span class="ct">売上履歴</span></div><div id="salesHist"></div></div>
-  </div>
-
-  <!-- SIM -->
-  <div class="page" id="page-sim">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;">
-      <h2 style="font-size:16px;font-weight:700;">損益シミュレーション</h2>
-      <div style="display:flex;gap:5px;">
-        <button class="btn bg bsm" onclick="dlTpl('sim')">📋 テンプレ</button>
-        <button class="btn bg bsm" onclick="exportSim()">📤 CSV出力</button>
-      </div>
-    </div>
-    <div style="font-size:11px;color:var(--text2);margin-bottom:5px;">対象イベント:</div>
-    <div class="sim-ev-sel" id="simEvSel"></div>
-    <div class="card" style="margin-bottom:10px;padding:10px 14px;">
-      <div style="font-size:11px;color:var(--text2);" id="simExpInfo">イベント経費: なし</div>
-    </div>
-    <div style="font-size:11px;color:var(--text2);margin-bottom:5px;">商品:</div>
-    <div class="tabs" id="simTabs"></div>
-    <div id="simDet"></div>
-    <div class="card">
-      <div class="ch">
-        <span class="ct">損益分岐グラフ</span>
-        <!-- シミュ計算モード -->
-        <div class="tog" id="simModeBar">
-          <button class="togb active" id="smM_cost" onclick="setSimMode('cost')">💴 単純損益</button>
-          <button class="togb" id="smM_full" onclick="setSimMode('full')">💴+🎪 実質損益</button>
-          <button class="togb" id="smM_sales" onclick="setSimMode('sales')">💰 売上のみ</button>
-        </div>
-      </div>
-      <div class="simch" id="simCh"></div>
-      <div id="simRes" style="font-size:13px;text-align:center;padding:7px;"></div>
-      <div id="simTable" style="overflow-x:auto;margin-top:4px;"></div>
-    </div>
-  </div>
-</div><!-- /mc -->
-
-<div class="bnav">
-  <button class="ni active" data-page="register" onclick="showPage('register')"><div class="nico">🛒</div><div>レジ</div></button>
-  <button class="ni" data-page="products" onclick="showPage('products')"><div class="nico">📦</div><div>商品</div></button>
-  <button class="ni" data-page="events" onclick="showPage('events')"><div class="nico">📅</div><div>イベント</div></button>
-  <button class="ni" data-page="analytics" onclick="showPage('analytics')"><div class="nico">📊</div><div>分析</div></button>
-  <button class="ni" data-page="sim" onclick="showPage('sim')"><div class="nico">🎯</div><div>シミュ</div></button>
-</div>
-</div><!-- /mainApp -->
-
-<!-- IMAGE DROP -->
-<div class="idover" id="idOver">
-  <div style="color:var(--text2);font-size:13px;">商品画像を設定</div>
-  <div class="idzone" id="idZone">
-    <div style="font-size:36px;">🖼️</div>
-    <div style="font-size:13px;color:var(--text2);">ここに画像をドロップ</div>
-    <div style="font-size:11px;color:var(--text3);">またはタップして選択</div>
-    <input type="file" accept="image/*" onchange="handleImgFile(event)">
-  </div>
-  <img class="idprev" id="idPrev" src="" alt="preview">
-  <div style="display:flex;gap:10px;">
-    <button class="btn bg" onclick="closeImgDrop()">キャンセル</button>
-    <button class="btn bp" id="idApply" onclick="applyImg()" disabled style="opacity:.5">この画像を設定</button>
+    <input class="fi" id="authEmail" type="email" placeholder="メールアドレス" style="margin-bottom:8px;">
+    <input class="fi" id="authPass" type="password" placeholder="パスワード" style="margin-bottom:12px;">
+    <button id="authSubmitBtn" onclick="trySubmitAuth()" style="width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px;">ログイン</button>
+    <div id="forgotArea" style="text-align:center;"><button onclick="tryResetPassword()" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;text-decoration:underline;">パスワードを忘れた</button></div>
   </div>
 </div>
 
@@ -581,7 +428,8 @@ function initSample(){
 
 // ================================================================ STORAGE
 function save(){
-  var key=localStorage.getItem('djp_user_key')||'djp_v4';
+  if(appMode==='guest')return;
+  var key=localStorage.getItem('djp_user_key')||'djp_v4_local';
   try{localStorage.setItem(key,JSON.stringify({p:S.p,e:S.e,s:S.s,theme:S.theme}));}catch(x){}
 }
 function loadData(key){
@@ -812,21 +660,22 @@ function openAdjUC(pid,eid){
   var p=S.p.find(function(x){return x.id===pid;});if(!p)return;
   var ed=(p.editions||[]).find(function(e){return e.id===eid;});if(!ed)return;
   var edCost=(p.costs||[]).reduce(function(s,c){return s+(c.perEdition&&c.perEdition[ed.id]?c.perEdition[ed.id]:0);},0);
-  var simpleUC=ed.ordered>0?(edCost/ed.ordered).toFixed(1):'−';
+  var simpleUC=ed.ordered>0?(edCost/ed.ordered).toFixed(1):'-';
   var curAdj=ed.adjUnitCost!=null?ed.adjUnitCost:'';
-  openM('<div class="mtit">調整原価を設定</div>'
+  var html='<div class="mtit">調整原価を設定</div>'
     +'<div style="background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;">'
     +'<div>版: <strong>'+ed.label+'</strong> / 印刷: '+ed.ordered+'部</div>'
-    +'<div style="color:var(--text2);">単純原価: <span style="font-family:'Space Mono';">¥'+simpleUC+'/部</span></div>'
-    +'<div style="color:var(--text2);">総原価: <span style="font-family:'Space Mono';">¥'+edCost.toLocaleString()+'</span></div>'
+    +'<div style="color:var(--text2);">単純原価: <span style="font-family:monospace;">￥'+simpleUC+'/部</span></div>'
+    +'<div style="color:var(--text2);">総原価: <span style="font-family:monospace;">￥'+edCost.toLocaleString()+'</span></div>'
     +'</div>'
     +'<div class="fg"><label class="fl">調整原価 (円/部) — 空欄で単純原価を使用</label>'
     +'<input class="fi" id="adjUCInput" type="number" min="0" step="1" placeholder="例: 400" value="'+curAdj+'"></div>'
     +'<div class="mact">'
     +'<button class="btn bg" onclick="closeM()">キャンセル</button>'
-    +'<button class="btn bd bsm" onclick="clearAdjUC(''+pid+'',''+eid+'')">クリア</button>'
-    +'<button class="btn bp" onclick="saveAdjUC(''+pid+'',''+eid+'')">設定</button>'
-    +'</div>');
+    +'<button class="btn bd bsm" onclick="clearAdjUC(\''+pid+'\',\''+eid+'\')">\u30af\u30ea\u30a2</button>'
+    +'<button class="btn bp" onclick="saveAdjUC(\''+pid+'\',\''+eid+'\')">\u8a2d\u5b9a</button>'
+    +'</div>';
+  openM(html);
 }
 function saveAdjUC(pid,eid){
   var p=S.p.find(function(x){return x.id===pid;});if(!p)return;
@@ -1688,52 +1537,106 @@ async function doLogout(){
 function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';applyTheme();save();}
 
 // ================================================================ INIT
-window.addEventListener('online',function(){document.getElementById('sdot').classList.remove('off');});
-window.addEventListener('offline',function(){document.getElementById('sdot').classList.add('off');});
+// ================================================================ MODES
+var appMode='local'; // 'guest' | 'local' | 'cloud'
 
-function startLocalMode(){
-  var lsKey=localStorage.getItem('djp_user_key')||'djp_v4';
+function startGuestMode(){
+  appMode='guest';
+  S.p=[];S.e=[];S.s=[];
+  initSample();
+  applyTheme();
+  document.getElementById('loginScreen').classList.remove('show');
+  document.getElementById('mainApp').style.display='block';
+  renderPage();
+  showToast('ゲストモードで起動しました（データは保存されません）');
+}
+
+function startLocalSavedMode(){
+  appMode='local';
+  var lsKey='djp_v4_local';
+  localStorage.setItem('djp_user_key',lsKey);
   loadData(lsKey);
   applyTheme();
-  document.getElementById('mainApp').style.display='block';
   document.getElementById('loginScreen').classList.remove('show');
+  document.getElementById('mainApp').style.display='block';
+  renderPage();
+  showToast('ローカル保存モードで起動しました');
+}
+
+function startLocalMode(){
+  appMode='local';
+  var lsKey=localStorage.getItem('djp_user_key')||'djp_v4_local';
+  loadData(lsKey);
+  applyTheme();
+  document.getElementById('loginScreen').classList.remove('show');
+  document.getElementById('mainApp').style.display='block';
   renderPage();
 }
 
-(async function initApp(){
-  // file:// で開いた場合 or Supabase JS がロードできなかった場合は即ローカルモード
-  var isFile=window.location.protocol==='file:';
-  var sbOk=!isFile&&initSupabase();
-  var hasRealUrl=SUPABASE_URL!=='https://YOUR_PROJECT.supabase.co';
+// Supabase を動的ロードしてからコールバック
+function loadSupabaseJS(cb){
+  if(window.supabase){cb(true);return;}
+  var s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+  s.onload=function(){cb(true);};
+  s.onerror=function(){cb(false);};
+  document.head.appendChild(s);
+}
 
-  if(sbOk&&hasRealUrl){
-    try{
-      // 5秒でタイムアウト（オフライン・サーバー不達対策）
-      var sessionData=await Promise.race([
-        sbClient.auth.getSession(),
-        new Promise(function(_,rej){setTimeout(function(){rej(new Error('timeout'));},5000);})
-      ]);
-      var session=sessionData.data&&sessionData.data.session;
-      if(session&&session.user){
-        onLogin(session.user);
-      } else {
-        document.getElementById('loginScreen').classList.add('show');
-        sbClient.auth.onAuthStateChange(function(event,sess){
-          if(sess&&sess.user){
-            document.getElementById('loginScreen').classList.remove('show');
-            onLogin(sess.user);
-          }
-        });
-      }
-    } catch(e){
-      // タイムアウト or ネットワークエラー → ローカルモードにフォールバック
-      console.warn('Supabase getSession failed, falling back to local mode:',e.message);
-      startLocalMode();
-    }
-  } else {
-    // ローカルモード (file://、Supabase未設定、CDNロード失敗)
+function tryLoginWithGoogle(){
+  var btn=document.getElementById('googleLoginBtn');
+  if(btn){btn.textContent='読込中…';btn.disabled=true;}
+  loadSupabaseJS(function(ok){
+    if(btn){btn.textContent='Googleでログイン';btn.disabled=false;}
+    if(!ok){showAuthErr('ネットワーク接続が必要です');return;}
+    if(!initSupabase()){showAuthErr('Supabaseの設定が必要です');return;}
+    loginWithGoogle();
+  });
+}
+
+function trySubmitAuth(){
+  loadSupabaseJS(function(ok){
+    if(!ok){showAuthErr('ネットワーク接続が必要です');return;}
+    if(!initSupabase()){showAuthErr('Supabaseの設定が必要です');return;}
+    submitAuth();
+  });
+}
+
+function tryResetPassword(){
+  loadSupabaseJS(function(ok){
+    if(!ok){showAuthErr('ネットワーク接続が必要です');return;}
+    if(!initSupabase()){showAuthErr('Supabaseの設定が必要です');return;}
+    resetPassword();
+  });
+}
+
+// ================================================================ INIT
+window.addEventListener('online',function(){var d=document.getElementById('sdot');if(d)d.classList.remove('off');});
+window.addEventListener('offline',function(){var d=document.getElementById('sdot');if(d)d.classList.add('off');});
+
+(function initApp(){
+  // 既存セッションキーがあればローカルモードで即起動
+  var savedKey=localStorage.getItem('djp_user_key');
+  if(savedKey){
     startLocalMode();
+    // バックグラウンドでクラウドセッション確認
+    if(savedKey!=='djp_v4_local'&&savedKey!=='djp_v4'){
+      loadSupabaseJS(function(ok){
+        if(!ok||!initSupabase())return;
+        sbClient.auth.getSession().then(function(res){
+          var sess=res.data&&res.data.session;
+          if(sess&&sess.user){currentUser=sess.user;appMode='cloud';var btn=document.getElementById('userBtn');if(btn)btn.title=sess.user.email||'ログイン中';}
+        }).catch(function(){});
+        sbClient.auth.onAuthStateChange(function(event,sess){
+          if(event==='SIGNED_IN'&&sess&&sess.user){onLogin(sess.user);}
+          if(event==='SIGNED_OUT'){currentUser=null;appMode='local';}
+        });
+      });
+    }
+    return;
   }
+  // 初回起動: ログイン画面表示
+  document.getElementById('loginScreen').classList.add('show');
 })();
 </script>
 
