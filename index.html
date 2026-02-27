@@ -10,6 +10,7 @@
 <meta name="theme-color" content="#0a0a0f">
 <link rel="manifest" href="manifest.json">
 <title>レジろぐ</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Zen+Maru+Gothic:wght@500;700&family=Dela+Gothic+One&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -310,43 +311,194 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 <!-- ================================================================ LOGIN SCREEN -->
 <div id="loginScreen">
   <div style="font-family:'Dela Gothic One',cursive;font-size:44px;letter-spacing:5px;background:linear-gradient(135deg,#7c6af7,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;">レジろぐ</div>
-  <div style="font-family:'Zen Maru Gothic',sans-serif;font-size:13px;color:var(--text2);margin-bottom:32px;letter-spacing:2px;">同人誌レジ＆売上記録アプリ</div>
+  <div style="font-family:'Zen Maru Gothic',sans-serif;font-size:13px;color:var(--text2);margin-bottom:40px;letter-spacing:2px;">同人誌レジ＆売上記録アプリ</div>
   <div style="width:100%;max-width:340px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;">
     <div id="loginErr" style="display:none;background:rgba(248,113,113,.15);border:1px solid var(--red);border-radius:8px;padding:10px;margin-bottom:14px;font-size:12px;color:var(--red);"></div>
-
-    <!-- ゲストモード (一番目立つ) -->
-    <button onclick="startGuestMode()" style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;letter-spacing:1px;">
-      🚀 すぐに使う（ゲストモード）
-    </button>
-    <div style="font-size:11px;color:var(--text3);text-align:center;margin-bottom:18px;">データはこのブラウザにのみ保存されます</div>
-
-    <!-- ローカル保存モード -->
-    <button onclick="startLocalSavedMode()" style="width:100%;padding:11px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer;margin-bottom:20px;">
-      💾 ローカル保存モード（このブラウザに保存）
-    </button>
-
-    <!-- 区切り -->
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-      <div style="flex:1;height:1px;background:var(--border);"></div>
-      <span style="font-size:11px;color:var(--text3);">アカウントでログイン（クラウド同期）</span>
-      <div style="flex:1;height:1px;background:var(--border);"></div>
-    </div>
-
-    <!-- Google ログイン -->
-    <button id="googleLoginBtn" onclick="tryLoginWithGoogle()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;background:#fff;color:#333;border:1px solid #ddd;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;margin-bottom:14px;">
-      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+    <button onclick="loginWithGoogle()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:13px;background:#fff;color:#333;border:1px solid #ddd;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;margin-bottom:16px;">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
       Googleでログイン
     </button>
-
-    <!-- メール/パスワード -->
-    <div style="display:flex;border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-bottom:14px;">
-      <button id="tabLogin" onclick="switchAuthTab('login')" style="flex:1;padding:8px;font-size:12px;cursor:pointer;border:none;background:var(--accent);color:#fff;">ログイン</button>
-      <button id="tabSignup" onclick="switchAuthTab('signup')" style="flex:1;padding:8px;font-size:12px;cursor:pointer;border:none;background:transparent;color:var(--text2);">新規登録</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:11px;color:var(--text3);">またはメールで</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
     </div>
-    <input class="fi" id="authEmail" type="email" placeholder="メールアドレス" style="margin-bottom:8px;">
-    <input class="fi" id="authPass" type="password" placeholder="パスワード" style="margin-bottom:12px;">
-    <button id="authSubmitBtn" onclick="trySubmitAuth()" style="width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px;">ログイン</button>
-    <div id="forgotArea" style="text-align:center;"><button onclick="tryResetPassword()" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;text-decoration:underline;">パスワードを忘れた</button></div>
+    <div style="display:flex;gap:4px;margin-bottom:16px;background:var(--bg3);border-radius:8px;padding:3px;">
+      <button id="tabLogin" onclick="switchAuthTab('login')" style="flex:1;padding:7px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;">ログイン</button>
+      <button id="tabSignup" onclick="switchAuthTab('signup')" style="flex:1;padding:7px;border:none;border-radius:6px;background:transparent;color:var(--text2);font-size:13px;cursor:pointer;">新規登録</button>
+    </div>
+    <div class="fg" style="margin-bottom:10px;"><input class="fi" id="authEmail" type="email" placeholder="メールアドレス" style="font-size:14px;padding:11px 12px;"></div>
+    <div class="fg" style="margin-bottom:16px;"><input class="fi" id="authPass" type="password" placeholder="パスワード（6文字以上）" style="font-size:14px;padding:11px 12px;"></div>
+    <button id="authSubmitBtn" onclick="submitAuth()" style="width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;">ログイン</button>
+    <div id="forgotArea" style="text-align:center;margin-top:12px;">
+      <button onclick="resetPassword()" style="background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;text-decoration:underline;">パスワードをお忘れの方</button>
+    </div>
+  </div>
+  <div style="margin-top:20px;font-size:11px;color:var(--text3);text-align:center;">データはSupabaseクラウドに安全に保存されます</div>
+</div>
+
+<!-- ================================================================ MAIN APP -->
+<div id="mainApp" style="display:none;">
+<div class="header">
+  <div class="htitle">📚 DOUJIN Regi Log</div>
+  <span class="sdot" id="sdot"></span>
+  <button class="ibt" onclick="toggleTheme()" id="themeBtn">☀️</button>
+  <button class="hbtn" id="userBtn" onclick="showUserMenu()">👤</button>
+</div>
+
+<div class="mc">
+  <!-- REGISTER -->
+  <div class="page active" id="page-register">
+    <div class="esel" id="evSel"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;">
+      <div style="font-size:12px;color:var(--text2);" id="regEvName">イベントを選択</div>
+      <div class="vtog">
+        <button class="vb active" id="vbCard" onclick="setVM('card')">⊞</button>
+        <button class="vb" id="vbList" onclick="setVM('list')">☰</button>
+      </div>
+    </div>
+    <div id="prodDisp"></div>
+    <div class="cob">
+      <div class="tod"><span class="tol">合計金額</span><span class="toa" id="totAmt">¥0</span></div>
+      <div class="qcash">
+        <button class="qcb" onclick="setPP(500)">500</button>
+        <button class="qcb" onclick="setPP(1000)">1,000</button>
+        <button class="qcb" onclick="setPP(5000)">5,000</button>
+        <button class="qcb" onclick="setPP(10000)">10,000</button>
+        <button class="qcb" onclick="openNP('prepay')">⌨</button>
+      </div>
+      <div class="chdsp" id="chDisp">お釣り: <span class="cha">-</span></div>
+      <div style="display:flex;gap:7px;">
+        <button class="btn bg" style="flex:.4;" onclick="resetCart()">取消</button>
+        <button class="btn bs bfull" style="flex:1;" onclick="confirmSale()">✓ 会計確定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCTS -->
+  <div class="page" id="page-products">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h2 style="font-size:16px;font-weight:700;">商品管理</h2>
+      <div style="display:flex;gap:5px;">
+        <button class="btn bg bsm" onclick="dlTpl('products')">📋 テンプレ</button>
+        <button class="btn bg bsm" onclick="importCSV('products')">📥 CSV取込</button>
+        <button class="btn bp bsm" onclick="openAddProduct()">＋ 追加</button>
+      </div>
+    </div>
+    <div id="pmList"></div>
+  </div>
+
+  <!-- EVENTS -->
+  <div class="page" id="page-events">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h2 style="font-size:16px;font-weight:700;">イベント管理</h2>
+      <div style="display:flex;gap:5px;">
+        <button class="btn bg bsm" onclick="dlTpl('events')">📋 テンプレ</button>
+        <button class="btn bg bsm" onclick="importCSV('events')">📥 CSV取込</button>
+        <button class="btn bp bsm" onclick="openAddEvent()">＋ 追加</button>
+      </div>
+    </div>
+    <div id="evList"></div>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div class="page" id="page-analytics">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;">
+      <h2 style="font-size:16px;font-weight:700;">売上分析</h2>
+      <div style="display:flex;gap:5px;">
+        <button class="btn bg bsm" onclick="dlTpl('analytics')">📋 テンプレ</button>
+        <button class="btn bg bsm" onclick="exportAnalytics()">📤 CSV出力</button>
+        <button class="btn bd bsm" onclick="confirmResetSales()">🗑 リセット</button>
+      </div>
+    </div>
+    <div class="esel" id="anEvSel"></div>
+    <!-- 損益計算モード -->
+    <div class="tog an-modes" id="anModeBar">
+      <button class="togb active" id="anM_cost" onclick="setAnMode('cost')">💴 単純損益(原価のみ)</button>
+      <button class="togb" id="anM_full" onclick="setAnMode('full')">💴+🎪 実質損益(経費込み)</button>
+      <button class="togb" id="anM_sales" onclick="setAnMode('sales')">💰 売上のみ</button>
+    </div>
+    <div class="sgrid" id="statsGrid"></div>
+    <div class="card">
+      <div class="ch"><span class="ct">時間別グラフ</span></div>
+      <div class="tog" style="margin-bottom:10px;flex-wrap:wrap;">
+        <button class="togb active" id="yCount" onclick="togYA('count')" style="flex:1;min-width:80px;text-align:center;padding:6px 4px;">📦 時間帯別部数</button>
+        <button class="togb" id="yCumMoney" onclick="togYA('cumMoney')" style="flex:1;min-width:80px;text-align:center;padding:6px 4px;">📈 累計金額</button>
+        <button class="togb" id="yCumCount" onclick="togYA('cumCount')" style="flex:1;min-width:80px;text-align:center;padding:6px 4px;">📈 累計部数</button>
+        <button class="togb" id="yCumTotalMoney" onclick="togYA('cumTotalMoney')" style="flex:1;min-width:80px;text-align:center;padding:6px 4px;">💹 累計売上金額</button>
+      </div>
+      <div style="display:flex;gap:5px;margin-bottom:7px;align-items:center;flex-wrap:wrap;">
+        <span style="font-size:11px;color:var(--text2);">X軸:</span>
+        <input type="number" id="xS" value="10" min="0" max="23" style="width:46px;font-size:11px;padding:2px 4px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);" onchange="renderChart()">
+        時〜
+        <input type="number" id="xE" value="16" min="0" max="23" style="width:46px;font-size:11px;padding:2px 4px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);" onchange="renderChart()">
+        時
+      </div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">表示商品:</div>
+      <div class="prod-checks" id="prodChecks"></div>
+      <div id="salesCh" style="width:100%;height:220px;"></div>
+      <div id="soldoutTimeline" style="margin-top:8px;"></div>
+    </div>
+    <div class="card"><div class="ch"><span class="ct">商品別シェア</span></div><div id="shareCh" style="height:155px;"></div></div>
+    <div class="card"><div class="ch"><span class="ct">売上履歴</span></div><div id="salesHist"></div></div>
+  </div>
+
+  <!-- SIM -->
+  <div class="page" id="page-sim">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;">
+      <h2 style="font-size:16px;font-weight:700;">損益シミュレーション</h2>
+      <div style="display:flex;gap:5px;">
+        <button class="btn bg bsm" onclick="dlTpl('sim')">📋 テンプレ</button>
+        <button class="btn bg bsm" onclick="exportSim()">📤 CSV出力</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:5px;">対象イベント:</div>
+    <div class="sim-ev-sel" id="simEvSel"></div>
+    <div class="card" style="margin-bottom:10px;padding:10px 14px;">
+      <div style="font-size:11px;color:var(--text2);" id="simExpInfo">イベント経費: なし</div>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:5px;">商品:</div>
+    <div class="tabs" id="simTabs"></div>
+    <div id="simDet"></div>
+    <div class="card">
+      <div class="ch">
+        <span class="ct">損益分岐グラフ</span>
+        <!-- シミュ計算モード -->
+        <div class="tog" id="simModeBar">
+          <button class="togb active" id="smM_cost" onclick="setSimMode('cost')">💴 単純損益</button>
+          <button class="togb" id="smM_full" onclick="setSimMode('full')">💴+🎪 実質損益</button>
+          <button class="togb" id="smM_sales" onclick="setSimMode('sales')">💰 売上のみ</button>
+        </div>
+      </div>
+      <div class="simch" id="simCh"></div>
+      <div id="simRes" style="font-size:13px;text-align:center;padding:7px;"></div>
+      <div id="simTable" style="overflow-x:auto;margin-top:4px;"></div>
+    </div>
+  </div>
+</div><!-- /mc -->
+
+<div class="bnav">
+  <button class="ni active" data-page="register" onclick="showPage('register')"><div class="nico">🛒</div><div>レジ</div></button>
+  <button class="ni" data-page="products" onclick="showPage('products')"><div class="nico">📦</div><div>商品</div></button>
+  <button class="ni" data-page="events" onclick="showPage('events')"><div class="nico">📅</div><div>イベント</div></button>
+  <button class="ni" data-page="analytics" onclick="showPage('analytics')"><div class="nico">📊</div><div>分析</div></button>
+  <button class="ni" data-page="sim" onclick="showPage('sim')"><div class="nico">🎯</div><div>シミュ</div></button>
+</div>
+</div><!-- /mainApp -->
+
+<!-- IMAGE DROP -->
+<div class="idover" id="idOver">
+  <div style="color:var(--text2);font-size:13px;">商品画像を設定</div>
+  <div class="idzone" id="idZone">
+    <div style="font-size:36px;">🖼️</div>
+    <div style="font-size:13px;color:var(--text2);">ここに画像をドロップ</div>
+    <div style="font-size:11px;color:var(--text3);">またはタップして選択</div>
+    <input type="file" accept="image/*" onchange="handleImgFile(event)">
+  </div>
+  <img class="idprev" id="idPrev" src="" alt="preview">
+  <div style="display:flex;gap:10px;">
+    <button class="btn bg" onclick="closeImgDrop()">キャンセル</button>
+    <button class="btn bp" id="idApply" onclick="applyImg()" disabled style="opacity:.5">この画像を設定</button>
   </div>
 </div>
 
@@ -376,7 +528,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 
 <script>
 // ================================================================ STATE
-var S={theme:'dark',vm:'card',page:'register',evId:null,anEvId:null,anMode:'cost',simIdx:0,simMode:'cost',simEvId:null,yAxisSet:null,showSimpleUC:true,cart:{},pp:0,npTarget:null,npCb:null};
+var S={theme:'dark',vm:'card',page:'register',evId:null,anEvId:null,anMode:'cost',simIdx:0,simMode:'cost',simEvId:null,yAxisSet:null,cart:{},pp:0,npTarget:null,npCb:null};
 var npVal='0',simOvr={},csvTarget=null;
 var openAcc=new Set();
 var anProdFilter=null;
@@ -428,8 +580,7 @@ function initSample(){
 
 // ================================================================ STORAGE
 function save(){
-  if(appMode==='guest')return;
-  var key=localStorage.getItem('djp_user_key')||'djp_v4_local';
+  var key=localStorage.getItem('djp_user_key')||'djp_v4';
   try{localStorage.setItem(key,JSON.stringify({p:S.p,e:S.e,s:S.s,theme:S.theme}));}catch(x){}
 }
 function loadData(key){
@@ -582,18 +733,13 @@ function renderPMRow(p){
         +'</div>';
     }).join('');
     var cAccId='acc-cost-'+p.id+'-'+ed.id;
-    var adjUCVal=(ed.adjUnitCost!=null&&ed.adjUnitCost>=0)?ed.adjUnitCost:null;
-    var simpleUCStr=(edUC).toFixed(1);
     return '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;overflow:hidden;">'
-      +'<div style="display:flex;align-items:center;gap:5px;padding:7px 9px;flex-wrap:wrap;">'
+      +'<div style="display:flex;align-items:center;gap:6px;padding:7px 9px;">'
       +'<input class="erinp lbl" value="'+ed.label.replace(/"/g,'&quot;')+'" onchange="updEdLbl(\''+p.id+'\',\''+ed.id+'\',this.value)" onclick="event.stopPropagation();this.select()">'
       +'<input class="erinp num" type="number" min="0" value="'+ed.ordered+'" onchange="updEd(\''+p.id+'\',\''+ed.id+'\',this.value)" onclick="event.stopPropagation();this.select()">'
-      +'<span style="font-size:9px;color:var(--text3);">部</span>'
-      +(S.showSimpleUC?'<span style="font-size:9px;color:var(--text2);white-space:nowrap;" id="uc-'+p.id+'-'+ed.id+'">単純¥'+simpleUCStr+'/部</span>':'<span id="uc-'+p.id+'-'+ed.id+'" style="display:none;"></span>')
-      +'<span style="font-size:11px;color:var(--yellow);font-family:\'Space Mono\';white-space:nowrap;" id="ec-'+p.id+'-'+ed.id+'">¥'+edCost.toLocaleString()+'</span>'
-      +(adjUCVal!==null?'<span style="font-size:10px;color:var(--accent);font-weight:700;white-space:nowrap;">調整¥'+adjUCVal+'/部</span>':'')
-      +'<button class="btn bg" style="padding:5px 8px;font-size:10px;" onclick="event.stopPropagation();togAcc(\''+cAccId+'\')">💰 原価</button>'
-      +'<button class="btn bg" style="padding:5px 8px;font-size:10px;" onclick="event.stopPropagation();openAdjUC(\''+p.id+'\',\''+ed.id+'\')">' + (adjUCVal!==null?'調整済み':'調整原価') +'</button>'
+      +'<span style="font-size:9px;color:var(--text3);">部(総印刷数)</span>'
+      +'<span style="font-size:10px;color:var(--yellow);font-family:\'Space Mono\';flex:1;text-align:right;" id="uc-'+p.id+'-'+ed.id+'">¥'+Math.round(edUC).toLocaleString()+'/部</span>'
+      +'<button class="btn bg" style="padding:6px 10px;font-size:11px;" onclick="event.stopPropagation();togAcc(\''+cAccId+'\')">💰 原価</button>'
       +'<button class="erdel" onclick="event.stopPropagation();delEdSafe(\''+p.id+'\',\''+ed.id+'\')">✕</button>'
       +'</div>'
       +'<div class="accb '+(openAcc.has(cAccId)?'open':'')+'" id="'+cAccId+'" style="padding:8px 9px;border-top:1px solid var(--border);background:var(--bg2);">'
@@ -640,56 +786,6 @@ function renderPMRow(p){
     +'<button class="btn bd bsm" style="margin-left:auto;" onclick="delProd(\''+p.id+'\')">🗑 削除</button>'
     +'</div></div>';
 }
-// ================================================================ 調整原価
-function edAdjUC(p,ed){
-  if(ed.adjUnitCost!=null&&ed.adjUnitCost>=0)return ed.adjUnitCost;
-  var edC=(p.costs||[]).reduce(function(s,c){return s+(c.perEdition&&c.perEdition[ed.id]?c.perEdition[ed.id]:0);},0);
-  return ed.ordered>0?edC/ed.ordered:0;
-}
-function adjTotCost(p){
-  return(p.editions||[]).reduce(function(s,ed){return s+edAdjUC(p,ed)*(ed.ordered||0);},0);
-}
-function effectiveUnitCost(p){var o=totOrd(p);return o>0?adjTotCost(p)/o:0;}
-function toggleSimpleUC(){
-  S.showSimpleUC=!S.showSimpleUC;
-  var btn=document.getElementById('simpleUCBtn');
-  if(btn)btn.textContent='単純原価 '+(S.showSimpleUC?'表示':'非表示');
-  renderPM();
-}
-function openAdjUC(pid,eid){
-  var p=S.p.find(function(x){return x.id===pid;});if(!p)return;
-  var ed=(p.editions||[]).find(function(e){return e.id===eid;});if(!ed)return;
-  var edCost=(p.costs||[]).reduce(function(s,c){return s+(c.perEdition&&c.perEdition[ed.id]?c.perEdition[ed.id]:0);},0);
-  var simpleUC=ed.ordered>0?(edCost/ed.ordered).toFixed(1):'-';
-  var curAdj=ed.adjUnitCost!=null?ed.adjUnitCost:'';
-  var html='<div class="mtit">調整原価を設定</div>'
-    +'<div style="background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;">'
-    +'<div>版: <strong>'+ed.label+'</strong> / 印刷: '+ed.ordered+'部</div>'
-    +'<div style="color:var(--text2);">単純原価: <span style="font-family:monospace;">￥'+simpleUC+'/部</span></div>'
-    +'<div style="color:var(--text2);">総原価: <span style="font-family:monospace;">￥'+edCost.toLocaleString()+'</span></div>'
-    +'</div>'
-    +'<div class="fg"><label class="fl">調整原価 (円/部) — 空欄で単純原価を使用</label>'
-    +'<input class="fi" id="adjUCInput" type="number" min="0" step="1" placeholder="例: 400" value="'+curAdj+'"></div>'
-    +'<div class="mact">'
-    +'<button class="btn bg" onclick="closeM()">キャンセル</button>'
-    +'<button class="btn bd bsm" onclick="clearAdjUC(\''+pid+'\',\''+eid+'\')">\u30af\u30ea\u30a2</button>'
-    +'<button class="btn bp" onclick="saveAdjUC(\''+pid+'\',\''+eid+'\')">\u8a2d\u5b9a</button>'
-    +'</div>';
-  openM(html);
-}
-function saveAdjUC(pid,eid){
-  var p=S.p.find(function(x){return x.id===pid;});if(!p)return;
-  var ed=(p.editions||[]).find(function(e){return e.id===eid;});if(!ed)return;
-  var val=document.getElementById('adjUCInput').value;
-  if(val===''||val==null){ed.adjUnitCost=null;}
-  else{ed.adjUnitCost=Math.max(0,parseFloat(val)||0);}
-  save();closeM();renderPM();showToast('調整原価を設定しました');
-}
-function clearAdjUC(pid,eid){
-  var p=S.p.find(function(x){return x.id===pid;});if(!p)return;
-  var ed=(p.editions||[]).find(function(e){return e.id===eid;});if(!ed)return;
-  ed.adjUnitCost=null;save();closeM();renderPM();showToast('調整原価をクリアしました');
-}
 function togAcc(id){
   if(openAcc.has(id))openAcc.delete(id);else openAcc.add(id);
   var b=document.getElementById(id),a=document.getElementById('aa-'+id);
@@ -721,10 +817,8 @@ function refreshEdUC(pid){
   (p.editions||[]).forEach(function(ed){
     var edCost=(p.costs||[]).reduce(function(s,c){return s+(c.perEdition&&c.perEdition[ed.id]?c.perEdition[ed.id]:0);},0);
     var edUC=ed.ordered>0?edCost/ed.ordered:0;
-    var spanUC=document.getElementById('uc-'+pid+'-'+ed.id);
-    if(spanUC)spanUC.textContent='単純¥'+(edUC).toFixed(1)+'/部';
-    var spanEC=document.getElementById('ec-'+pid+'-'+ed.id);
-    if(spanEC)spanEC.textContent='¥'+edCost.toLocaleString();
+    var span=document.getElementById('uc-'+pid+'-'+ed.id);
+    if(span)span.textContent='¥'+Math.round(edUC).toLocaleString()+'/部';
   });
 }
 function delEdSafe(pid,eid){var p=S.p.find(function(x){return x.id===pid;});if(!p)return;p.editions=(p.editions||[]).filter(function(e){return e.id!==eid;});(p.costs||[]).forEach(function(c){if(c.perEdition)delete c.perEdition[eid];});openAcc.add('acc-ed-'+pid);save();renderPM();}
@@ -921,7 +1015,7 @@ function renderAnEvSel(){
   if(!S.anEvId&&S.e.length)S.anEvId=S.e[0].id;
   el.innerHTML=(S.e||[]).map(function(e){return '<div class="echip '+(e.id===S.anEvId?'active':'')+'" onclick="selAnEv(\''+e.id+'\')">'+e.name+'</div>';}).join('');
 }
-function selAnEv(id){S.anEvId=id;anProdFilter=null;renderAnEvSel();renderProdCheckboxes();renderStats();renderChart();renderShare();renderHist();}
+function selAnEv(id){S.anEvId=id;anProdFilter=null;renderProdCheckboxes();renderStats();renderChart();renderShare();renderHist();}
 function fSales(){return(S.s||[]).filter(function(s){return s.eid===S.anEvId;});}
 function fSalesFiltered(){var all=fSales();if(!anProdFilter)return all;return all.filter(function(s){return anProdFilter.has(s.pid);});}
 function renderProdCheckboxes(){
@@ -944,7 +1038,7 @@ function renderStats(){
   var sales=fSales();
   var rev=sales.reduce(function(s,x){return s+x.price*x.qty;},0);
   var qty=sales.reduce(function(s,x){return s+x.qty;},0);
-  var cu=0;sales.forEach(function(s){var p=S.p.find(function(x){return x.id===s.pid;});if(p)cu+=effectiveUnitCost(p)*s.qty;});
+  var cu=0;sales.forEach(function(s){var p=S.p.find(function(x){return x.id===s.pid;});if(p)cu+=unitCost(p)*s.qty;});
   var ev=S.e.find(function(e){return e.id===S.anEvId;});
   var exp=(ev&&ev.expenses||[]).reduce(function(s,e){return s+e.amount;},0);
   var mode=S.anMode||'cost';
@@ -978,16 +1072,16 @@ function effectiveCostForEvent(pid,currentEventId){
   var currentDate=currentEv.date;
   var pastEids=S.e.filter(function(e){return e.date<currentDate;}).map(function(e){return e.id;});
   var pastQty=(S.s||[]).filter(function(s){return s.pid===pid&&pastEids.indexOf(s.eid)>=0;}).reduce(function(s,x){return s+x.qty;},0);
-  if(pastQty<=0)return adjTotCost(p);
+  if(pastQty<=0)return totCost(p);
   var remaining=pastQty,effectiveCost=0;
   var eds=p.editions||[];
   for(var j=0;j<eds.length;j++){
-    var ed2=eds[j];
-    var edC=edAdjUC(p,ed2)*(ed2.ordered||0);
-    var edO=ed2.ordered||0;
+    var ed=eds[j];
+    var edC=(p.costs||[]).reduce(function(s,c){return s+(c.perEdition&&c.perEdition[ed.id]?c.perEdition[ed.id]:0);},0);
+    var edO=ed.ordered||0;
     if(edO<=0){effectiveCost+=edC;continue;}
     if(remaining>=edO){remaining-=edO;}
-    else{effectiveCost+=edC-remaining*edAdjUC(p,ed2);remaining=0;}
+    else{effectiveCost+=edC-remaining*(edC/edO);remaining=0;}
   }
   return Math.max(0,Math.round(effectiveCost));
 }
@@ -1013,7 +1107,6 @@ function renderChart(){
   var visPids=allPids.filter(function(pid){return !anProdFilter||anProdFilter.has(pid);});
   if(!visPids.length){el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:18px;text-align:center;">表示する商品を選択してください</div>';el.style.height='';renderSoldoutTimeline(hrs,allPids,allSales);return;}
 
-  /* ---- データ集計 ---- */
   var byPH={};
   visPids.forEach(function(pid){byPH[pid]={};hrs.forEach(function(h){byPH[pid][h]={m:0,c:0};});});
   allSales.filter(function(s){return visPids.includes(s.pid);}).forEach(function(s){
@@ -1024,129 +1117,52 @@ function renderChart(){
   visPids.forEach(function(pid){hrs.forEach(function(h){totByH[h].m+=byPH[pid][h].m;totByH[h].c+=byPH[pid][h].c;});});
 
   var modes=[...S.yAxisSet];
-  var hasCount      =modes.indexOf('count')>=0;
-  var hasCumMoney   =modes.indexOf('cumMoney')>=0;
-  var hasCumCount   =modes.indexOf('cumCount')>=0;
+  var hasCount=modes.indexOf('count')>=0;
+  var hasCumMoney=modes.indexOf('cumMoney')>=0;
+  var hasCumCount=modes.indexOf('cumCount')>=0;
   var hasCumTotalMoney=modes.indexOf('cumTotalMoney')>=0;
 
-  /* ---- 各データの最大値 ---- */
-  // 時間帯別部数の最大(1時間内の積み上げ合計)
   var mxC=Math.max.apply(null,hrs.map(function(h){return totByH[h].c;}).concat([1]));
-  // 商品別累計金額の最大
-  var cumMaxM=0;
-  visPids.forEach(function(pid){var r=0;hrs.forEach(function(h){r+=byPH[pid][h].m;});if(r>cumMaxM)cumMaxM=r;});
-  // 商品別累計部数の最大
-  var cumMaxC=0;
-  visPids.forEach(function(pid){var r=0;hrs.forEach(function(h){r+=byPH[pid][h].c;});if(r>cumMaxC)cumMaxC=r;});
-  // 全商品合計の累計売上(= 最終累計値 = グラフが到達する最大値)
-  var cumTotalM=hrs.reduce(function(s,h){return s+totByH[h].m;},0);
+  var cumMaxM=0,cumMaxC=0;
+  visPids.forEach(function(pid){var rm=0,rc=0;hrs.forEach(function(h){rm+=byPH[pid][h].m;rc+=byPH[pid][h].c;});if(rm>cumMaxM)cumMaxM=rm;if(rc>cumMaxC)cumMaxC=rc;});
+  var cumTotalMaxM=hrs.reduce(function(s,h){return s+totByH[h].m;},0);
+  cumMaxM=Math.max(cumMaxM,1);cumMaxC=Math.max(cumMaxC,1);cumTotalMaxM=Math.max(cumTotalMaxM,1);
 
-  /* ---- 損益分岐 (モードに関わらずスケール計算に使う) ---- */
-  var beLine=0;
-  if(hasCumTotalMoney&&S.anMode!=='sales'){
-    beLine=calcAnBreakeven(visPids,S.anEvId,S.anMode);
-  }
+  var beLine=hasCumTotalMoney&&S.anMode!=='sales'?calcAnBreakeven(visPids,S.anEvId,S.anMode):0;
+  if(beLine>cumTotalMaxM)cumTotalMaxM=Math.round(beLine*1.15);
 
-  /* ---- niceMax: 切りの良い上限値 ---- */
-  function niceMax(val){
-    if(val<=0)return 1;
-    var mag=Math.pow(10,Math.floor(Math.log10(val)));
-    var normalized=val/mag;
-    // 1,2,2.5,5,10 の中で ceil
-    var steps=[1,2,2.5,5,10];
-    for(var si=0;si<steps.length;si++){if(normalized<=steps[si])return steps[si]*mag;}
-    return 10*mag;
-  }
-
-  /* ---- Y軸スケール確定 ---- */
-  // 左軸(金額): hasCumTotalMoney時は累計売上合計とbreakevenの大きい方を必ず収める
-  // 左軸(通常): 表示モードに応じた最大値
-  var leftMoneyMax,leftCountMax;
-  if(hasCumTotalMoney){
-    // beLine が cumTotalM より大きければ beLine*1.1 まで軸を伸ばす
-    var rawLeftMax=Math.max(cumTotalM,beLine,1);
-    // 少し余白を持たせる
-    leftMoneyMax=niceMax(rawLeftMax*1.05);
-    // 右軸: 部数 (count / cumCount が有効時のみ)
-    leftCountMax=niceMax(Math.max(hasCount?mxC:0,hasCumCount?cumMaxC:0,1));
-  } else {
-    // 通常モード: 表示しているものに応じて左軸を決定
-    if(hasCount){
-      leftCountMax=niceMax(mxC);
-    } else if(hasCumCount){
-      leftCountMax=niceMax(cumMaxC);
-    }
-    if(hasCumMoney){
-      leftMoneyMax=niceMax(cumMaxM);
-    }
-  }
-
-  /* ---- SVG描画パラメータ ---- */
   var LEG_H=visPids.length>0?Math.ceil(visPids.length/3)*14+10:0;
   var LEG_H2=hasCumTotalMoney?18:0;
-  // 右軸が必要なとき右マージンを広げる
-  var needRightAx=hasCumTotalMoney&&(hasCount||hasCumCount);
-  var W=320,H=200,pL=44,pR=needRightAx?W-28:W-10;
-  var pT=14,pB=H-20,gW=pR-pL,gH=pB-pT;
+  var W=320,H=200,pL=44,pR=W-10,pT=14,pB=H-20,gW=pR-pL,gH=pB-pT;
   var nH=hrs.length,slotW=nH>1?gW/nH:gW;
   function bx(i){return pL+i*slotW+slotW/2;}
-  // Y変換関数(maxを外から受け取る)
-  function gyM(v){return pT+gH-(v/(leftMoneyMax||1))*gH;}  // 金額軸
-  function gyC(v){return pT+gH-(v/(leftCountMax||1))*gH;}  // 部数軸
+  function gy(v,mx){return pT+gH-(v/mx)*gH;}
 
   var inner='';
   inner+=svgL(pL,pT,pL,pB,'var(--border)',1);
   inner+=svgL(pL,pB,pR,pB,'var(--border)',1);
   inner+=hrs.map(function(h,i){return svgT(bx(i),pB+12,h+'時',8,'var(--text3)','middle');}).join('');
 
-  /* ---- 軸ラベル描画 ---- */
-  if(hasCumTotalMoney){
-    // 左軸=金額
-    [0,.25,.5,.75,1].forEach(function(r){
-      var y=pT+gH*(1-r);
-      var v=r*leftMoneyMax;
-      var lbl=r===0?'0':(v>=10000?Math.round(v/1000)+'k':v.toFixed(0));
-      inner+=svgL(pL,y,pR,y,'var(--border)',.4);
-      inner+=svgT(pL-4,y+3,lbl,8,'var(--text3)','end');
-    });
-    // 右軸=部数 (表示する場合)
-    if(needRightAx){
-      [0,.25,.5,.75,1].forEach(function(r){
-        var y=pT+gH*(1-r);
-        var v=Math.round(r*leftCountMax);
-        inner+=svgT(W-4,y+3,v,7,'var(--cyan)','end');
-      });
-    }
-  } else {
-    // 通常モード: 左軸は主要な値スケールで
-    var leftMx=(hasCount||hasCumCount)?leftCountMax:(hasCumMoney?leftMoneyMax:1);
-    var leftIsK=!hasCount&&!hasCumCount&&hasCumMoney;
-    [0,.25,.5,.75,1].forEach(function(r){
-      var y=pT+gH*(1-r);
-      var v=r*leftMx;
-      var lbl=r===0?'0':(leftIsK?(v>=10000?Math.round(v/1000)+'k':v.toFixed(0)):Math.round(v).toString());
-      inner+=svgL(pL,y,pR,y,'var(--border)',.4);
-      inner+=svgT(pL-4,y+3,lbl,8,'var(--text3)','end');
-    });
-    // hasCumMoney かつ count/cumCount も表示中なら右軸に金額スケール
-    if(hasCumMoney&&(hasCount||hasCumCount)){
-      [0,.25,.5,.75,1].forEach(function(r){
-        var y=pT+gH*(1-r);
-        var v=r*leftMoneyMax;
-        inner+=svgT(pR+4,y+3,r===0?'0':(v>=10000?Math.round(v/1000)+'k':Math.round(v).toString()),7,'var(--text2)','start');
-      });
-    }
+  // 左軸
+  var leftMx=hasCount?mxC:hasCumCount?cumMaxC:hasCumMoney?cumMaxM:hasCumTotalMoney?cumTotalMaxM:1;
+  var leftIsK=!hasCount&&!hasCumCount&&(hasCumMoney||hasCumTotalMoney);
+  [0,.25,.5,.75,1].forEach(function(r){
+    var y=pT+gH*(1-r);
+    var lbl=r===0?'0':(leftIsK?Math.round(r*leftMx/1000)+'k':Math.round(r*leftMx));
+    inner+=svgL(pL,y,pR,y,'var(--border)',.4);
+    inner+=svgT(pL-4,y+3,lbl,8,'var(--text3)','end');
+  });
+  if(hasCumMoney&&(hasCount||hasCumCount)){
+    [0,.25,.5,.75,1].forEach(function(r){var y=pT+gH*(1-r);inner+=svgT(pR+4,y+3,r===0?'0':Math.round(r*cumMaxM/1000)+'k',7,'var(--text2)','start');});
   }
 
-  /* ---- グラフ本体 ---- */
-
-  // 棒グラフ (時間帯別部数) → 部数軸
+  // 棒グラフ
   if(hasCount){
     hrs.forEach(function(h,hi){
       var stackY=pB;
       visPids.forEach(function(pid){
         var v=byPH[pid][h].c;if(!v)return;
-        var bh=(v/leftCountMax)*gH,col=pCol(allPids.indexOf(pid)),bw=slotW*0.65;
+        var bh=(v/mxC)*gH,col=pCol(allPids.indexOf(pid)),bw=slotW*0.65;
         inner+=svgR(bx(hi)-bw/2,stackY-bh,bw,bh,col,.75,1);
         if(bh>9)inner+=svgT(bx(hi),stackY-bh/2,v,7,'#fff','middle');
         stackY-=bh;
@@ -1154,54 +1170,53 @@ function renderChart(){
     });
   }
 
-  // 累計部数 → 部数軸
+  // 累計金額（商品別）
+  if(hasCumMoney){
+    var gyM=function(v){return(hasCount||hasCumCount)?pT+gH-(v/cumMaxM)*gH:gy(v,cumMaxM);};
+    visPids.forEach(function(pid){
+      var col=pCol(allPids.indexOf(pid)),run=0;
+      var d=hrs.map(function(h,i){run+=byPH[pid][h].m;return(i===0?'M':'L')+bx(i)+','+gyM(run);}).join(' ');
+      inner+=svgP(d,col,2,'6,2');
+      run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].m;inner+=svgC(bx(i),gyM(run),3,col);});
+    });
+  }
+
+  // 累計部数
   if(hasCumCount){
     visPids.forEach(function(pid){
       var col=pCol(allPids.indexOf(pid)),run=0;
-      var d=hrs.map(function(h,i){run+=byPH[pid][h].c;return(i===0?'M':'L')+bx(i)+','+gyC(run);}).join(' ');
+      var d=hrs.map(function(h,i){run+=byPH[pid][h].c;return(i===0?'M':'L')+bx(i)+','+gy(run,cumMaxC);}).join(' ');
       inner+=svgP(d,col,hasCount?1.5:2);
-      run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].c;inner+=svgC(bx(i),gyC(run),2.5,col);});
+      run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].c;inner+=svgC(bx(i),gy(run,cumMaxC),2.5,col);});
     });
   }
 
-  // 累計金額(商品別破線) → 金額軸
-  if(hasCumMoney){
-    visPids.forEach(function(pid){
-      var col=pCol(allPids.indexOf(pid)),run=0;
-      var useM=hasCumTotalMoney?gyM:((hasCount||hasCumCount)?function(v){return pT+gH-(v/(leftMoneyMax||1))*gH;}:gyM);
-      var d=hrs.map(function(h,i){run+=byPH[pid][h].m;return(i===0?'M':'L')+bx(i)+','+useM(run);}).join(' ');
-      inner+=svgP(d,col,2,'6,2');
-      run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].m;inner+=svgC(bx(i),useM(run),3,col);});
-    });
-  }
-
-  // 累計売上合計 (白実線) → 金額軸
+  // 累計売上金額（全商品合計・白実線）
   if(hasCumTotalMoney){
+    var gyT=function(v){return gy(v,cumTotalMaxM);};
     var runT=0;
-    var dT=hrs.map(function(h,i){runT+=totByH[h].m;return(i===0?'M':'L')+bx(i)+','+gyM(runT);}).join(' ');
+    var dT=hrs.map(function(h,i){runT+=totByH[h].m;return(i===0?'M':'L')+bx(i)+','+gyT(runT);}).join(' ');
     inner+=svgP(dT,'#ffffff',2.5);
     runT=0;
     hrs.forEach(function(h,i){
       runT+=totByH[h].m;
-      inner+=svgC(bx(i),gyM(runT),3.5,'#ffffff');
+      inner+=svgC(bx(i),gyT(runT),3.5,'#ffffff');
       if(runT>0){
-        var v=runT;
-        var lbl=v>=10000?Math.round(v/1000)+'k':v.toFixed(0);
-        inner+=svgT(bx(i),gyM(runT)-7,lbl,8,'#ffffff','middle');
+        var lbl=runT>=10000?Math.round(runT/1000)+'k':runT>=1000?Math.round(runT/1000)+'k':''+runT;
+        inner+=svgT(bx(i),gyT(runT)-6,lbl,8,'#ffffff','middle');
       }
     });
-
-    // 損益分岐水平線 → 金額軸
+    // 損益分岐水平線
     if(beLine>0){
-      var beY=gyM(beLine);
+      var beY=gyT(beLine);
       inner+=svgL(pL,beY,pR,beY,'var(--yellow)',1.5,'4,3');
-      var beK=beLine>=10000?Math.round(beLine/1000)+'k':beLine.toLocaleString();
+      var beK=beLine>=1000?Math.round(beLine/1000)+'k':''+beLine;
       inner+=svgT(pR-2,beY-3,'¥'+beK,8,'var(--yellow)','end');
       inner+=svgT(pL+2,beY-3,'損益分岐',8,'var(--yellow)','start');
     }
   }
 
-  /* ---- 凡例 ---- */
+  // 凡例
   var legSvg='',cols=3,legRowH=13,legX=pL,legY=H+6;
   visPids.forEach(function(pid,li){
     var col=pCol(allPids.indexOf(pid));
@@ -1216,9 +1231,10 @@ function renderChart(){
     legSvg+='<rect x="'+legX+'" y="'+(extraY+2)+'" width="16" height="3" fill="#ffffff" rx="1"/>';
     legSvg+=svgT(legX+20,extraY+8,'累計売上合計',9,'#ffffff','start');
     if(beLine>0){
-      var beLbl=S.anMode==='full'?'損益分岐(原価+経費)':'損益分岐(原価のみ)';
+      var mode2=S.anMode||'cost';
+      var beLbl2=mode2==='full'?'損益分岐(原価+経費)':'損益分岐(原価のみ)';
       legSvg+='<line x1="'+(legX+100)+'" y1="'+(extraY+4)+'" x2="'+(legX+116)+'" y2="'+(extraY+4)+'" stroke="var(--yellow)" stroke-width="1.5" stroke-dasharray="4,2"/>';
-      legSvg+=svgT(legX+120,extraY+8,beLbl,9,'var(--yellow)','start');
+      legSvg+=svgT(legX+120,extraY+8,beLbl2,9,'var(--yellow)','start');
     }
   }
 
@@ -1301,7 +1317,7 @@ function gSV(pid,f,def){return simOvr[pid]&&simOvr[pid][f]!==undefined?simOvr[pi
 function getSimCost(p){
   var ev=S.e.find(function(e){return e.id===S.simEvId;});
   var expAmt=(ev&&ev.expenses||[]).reduce(function(s,e){return s+e.amount;},0);
-  var base=adjTotCost(p);
+  var base=totCost(p);
   return S.simMode==='sales'?0:S.simMode==='full'?base+expAmt:base;
 }
 function renderSimDet(){
@@ -1537,106 +1553,37 @@ async function doLogout(){
 function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';applyTheme();save();}
 
 // ================================================================ INIT
-// ================================================================ MODES
-var appMode='local'; // 'guest' | 'local' | 'cloud'
+window.addEventListener('online',function(){document.getElementById('sdot').classList.remove('off');});
+window.addEventListener('offline',function(){document.getElementById('sdot').classList.add('off');});
 
-function startGuestMode(){
-  appMode='guest';
-  S.p=[];S.e=[];S.s=[];
-  initSample();
-  applyTheme();
-  document.getElementById('loginScreen').classList.remove('show');
-  document.getElementById('mainApp').style.display='block';
-  renderPage();
-  showToast('ゲストモードで起動しました（データは保存されません）');
-}
-
-function startLocalSavedMode(){
-  appMode='local';
-  var lsKey='djp_v4_local';
-  localStorage.setItem('djp_user_key',lsKey);
-  loadData(lsKey);
-  applyTheme();
-  document.getElementById('loginScreen').classList.remove('show');
-  document.getElementById('mainApp').style.display='block';
-  renderPage();
-  showToast('ローカル保存モードで起動しました');
-}
-
-function startLocalMode(){
-  appMode='local';
-  var lsKey=localStorage.getItem('djp_user_key')||'djp_v4_local';
-  loadData(lsKey);
-  applyTheme();
-  document.getElementById('loginScreen').classList.remove('show');
-  document.getElementById('mainApp').style.display='block';
-  renderPage();
-}
-
-// Supabase を動的ロードしてからコールバック
-function loadSupabaseJS(cb){
-  if(window.supabase){cb(true);return;}
-  var s=document.createElement('script');
-  s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-  s.onload=function(){cb(true);};
-  s.onerror=function(){cb(false);};
-  document.head.appendChild(s);
-}
-
-function tryLoginWithGoogle(){
-  var btn=document.getElementById('googleLoginBtn');
-  if(btn){btn.textContent='読込中…';btn.disabled=true;}
-  loadSupabaseJS(function(ok){
-    if(btn){btn.textContent='Googleでログイン';btn.disabled=false;}
-    if(!ok){showAuthErr('ネットワーク接続が必要です');return;}
-    if(!initSupabase()){showAuthErr('Supabaseの設定が必要です');return;}
-    loginWithGoogle();
-  });
-}
-
-function trySubmitAuth(){
-  loadSupabaseJS(function(ok){
-    if(!ok){showAuthErr('ネットワーク接続が必要です');return;}
-    if(!initSupabase()){showAuthErr('Supabaseの設定が必要です');return;}
-    submitAuth();
-  });
-}
-
-function tryResetPassword(){
-  loadSupabaseJS(function(ok){
-    if(!ok){showAuthErr('ネットワーク接続が必要です');return;}
-    if(!initSupabase()){showAuthErr('Supabaseの設定が必要です');return;}
-    resetPassword();
-  });
-}
-
-// ================================================================ INIT
-window.addEventListener('online',function(){var d=document.getElementById('sdot');if(d)d.classList.remove('off');});
-window.addEventListener('offline',function(){var d=document.getElementById('sdot');if(d)d.classList.add('off');});
-
-(function initApp(){
-  // 既存セッションキーがあればローカルモードで即起動
-  var savedKey=localStorage.getItem('djp_user_key');
-  if(savedKey){
-    startLocalMode();
-    // バックグラウンドでクラウドセッション確認
-    if(savedKey!=='djp_v4_local'&&savedKey!=='djp_v4'){
-      loadSupabaseJS(function(ok){
-        if(!ok||!initSupabase())return;
-        sbClient.auth.getSession().then(function(res){
-          var sess=res.data&&res.data.session;
-          if(sess&&sess.user){currentUser=sess.user;appMode='cloud';var btn=document.getElementById('userBtn');if(btn)btn.title=sess.user.email||'ログイン中';}
-        }).catch(function(){});
-        sbClient.auth.onAuthStateChange(function(event,sess){
-          if(event==='SIGNED_IN'&&sess&&sess.user){onLogin(sess.user);}
-          if(event==='SIGNED_OUT'){currentUser=null;appMode='local';}
-        });
+(async function initApp(){
+  var sbOk=initSupabase();
+  if(sbOk&&SUPABASE_URL!=='https://YOUR_PROJECT.supabase.co'){
+    // セッション確認が完了するまで何も表示しない
+    var sessionData=await sbClient.auth.getSession();
+    var session=sessionData.data&&sessionData.data.session;
+    if(session&&session.user){
+      // 既存セッションあり → 直接ログイン
+      onLogin(session.user);
+    } else {
+      // セッションなし → ログイン画面を表示
+      document.getElementById('loginScreen').classList.add('show');
+      // OAuth redirect後の処理
+      sbClient.auth.onAuthStateChange(function(event,session){
+        if(session&&session.user){
+          document.getElementById('loginScreen').classList.remove('show');
+          onLogin(session.user);
+        }
       });
     }
-    return;
+  } else {
+    // Supabase未設定: ローカルモード
+    var lsKey=localStorage.getItem('djp_user_key')||'djp_v4';
+    loadData(lsKey);
+    applyTheme();
+    document.getElementById('mainApp').style.display='block';
+    renderReg();
   }
-  // 初回起動: ログイン画面表示
-  document.getElementById('loginScreen').classList.add('show');
 })();
 </script>
 
