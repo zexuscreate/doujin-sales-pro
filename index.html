@@ -2133,25 +2133,55 @@ function showTutStep(idx){
     _posTutCenter(steps.length);
     return;
   }
-  // 固定バーの高さを取得
-  var HEADER_H=48;   // ヘッダー高さ
-  var BOTTOM_H=200;  // ボトムナビ＋会計バー分の余裕
+  // ページごとのセーフゾーン（固定バーに隠れない範囲）
+  var safeTop=_getSafeTop();
+  var safeBot=_getSafeBot();
   var mc=document.querySelector('.mc');
   if(mc){
     var r=el.getBoundingClientRect();
-    var mcR=mc.getBoundingClientRect();
-    var visTop=mcR.top+HEADER_H;
-    var visBot=mcR.bottom-BOTTOM_H;
-    // 要素が見えていない、または固定バーに隠れている場合スクロール
-    if(r.top<visTop||r.bottom>visBot){
-      var targetScroll=mc.scrollTop+(r.top-mcR.top)-HEADER_H-20;
-      mc.scrollTo({top:targetScroll,behavior:'smooth'});
-      // スクロール完了を待ってから位置計算
-      setTimeout(function(){_posTut(el,steps.length);},320);
-      return;
+    var elH=r.height;
+    // 要素の上端がセーフゾーン内に入るようにスクロール量を計算
+    var needsScroll=false;
+    var targetScrollTop=mc.scrollTop;
+    if(r.top<safeTop+10){
+      // 上が隠れている→要素上端をセーフゾーン上端から20px下に
+      targetScrollTop=mc.scrollTop+(r.top-safeTop)-20;
+      needsScroll=true;
+    } else if(r.bottom>safeBot-10){
+      // 下が隠れている→要素下端がセーフゾーン下端から20px上に
+      targetScrollTop=mc.scrollTop+(r.bottom-safeBot)+20;
+      needsScroll=true;
+    }
+    if(needsScroll){
+      // instant でスクロール（完了を待つ必要がなく確実）
+      mc.scrollTop=Math.max(0,targetScrollTop);
     }
   }
-  _posTut(el,steps.length);
+  // rAF×2で確実にDOM反映後に位置計算
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      _posTut(el,steps.length);
+    });
+  });
+}
+
+function _getSafeTop(){
+  // ヘッダーの実際の高さを取得
+  var header=document.querySelector('.header');
+  return header?header.getBoundingClientRect().bottom:48;
+}
+
+function _getSafeBot(){
+  var vh=window.innerHeight;
+  // ボトムナビの実際の位置
+  var bnav=document.querySelector('.bnav');
+  var bnavTop=bnav?bnav.getBoundingClientRect().top:vh-56;
+  // レジページは会計バー(.cob)もある
+  if(tutPage==='register'){
+    var cob=document.querySelector('.cob');
+    if(cob){var cobTop=cob.getBoundingClientRect().top;return Math.min(bnavTop,cobTop)-4;}
+  }
+  return bnavTop-4;
 }
 
 function _posTut(el,total){
@@ -2160,21 +2190,9 @@ function _posTut(el,total){
   var box=document.getElementById('tutBox');
   var r=el.getBoundingClientRect();
   var pad=5,vw=window.innerWidth,vh=window.innerHeight;
-  // 固定バー定数（スポットライト・吹き出しの配置に使用）
-  var HEADER_H=48,BOT_NAV=56,COB_H=130;
-  var safeTop=HEADER_H+4;
-  var safeBot=vh-BOT_NAV-4;
-  // 要素がまだ固定バーに隠れていたら再スクロール後に再試行
-  if(r.top<safeTop||r.bottom>safeBot){
-    var mc=document.querySelector('.mc');
-    if(mc){
-      var mcR=mc.getBoundingClientRect();
-      var targetScroll=mc.scrollTop+(r.top-mcR.top)-HEADER_H-20;
-      mc.scrollTo({top:targetScroll,behavior:'smooth'});
-      setTimeout(function(){_posTut(el,total);},320);
-      return;
-    }
-  }
+  var safeTop=_getSafeTop();
+  var safeBot=_getSafeBot();
+
   // Spotlight
   spot.style.cssText='display:block;position:fixed;'
     +'left:'+(r.left-pad)+'px;top:'+(r.top-pad)+'px;'
@@ -2182,23 +2200,26 @@ function _posTut(el,total){
     +'border-radius:8px;z-index:9001;pointer-events:none;'
     +'outline:2.5px solid var(--accent);outline-offset:1px;'
     +'box-shadow:0 0 0 9999px rgba(0,0,0,.73);';
+
   // 吹き出しボックス
   _renderBox(box,step,total);
   box.style.display='block';
   var bh=box.offsetHeight||150,bw=box.offsetWidth||288;
+
+  // 水平位置：要素の中央寄せ、画面端に収める
   var bLeft=Math.max(10,Math.min(r.left+(r.width/2)-(bw/2),vw-bw-10));
+
+  // 垂直位置：下→上→中央の優先順
   var bTop;
-  // 下に置けるか（ボトムナビより上に収まるか）
-  var spaceBelow=safeBot-r.bottom-12;
-  var spaceAbove=r.top-safeTop-12;
-  if(spaceBelow>=bh){
-    bTop=r.bottom+pad+12;
-  } else if(spaceAbove>=bh){
-    bTop=r.top-pad-bh-12;
+  if(r.bottom+bh+14<=safeBot){
+    bTop=r.bottom+pad+10;                       // 要素の下
+  } else if(r.top-bh-14>=safeTop){
+    bTop=r.top-pad-bh-10;                       // 要素の上
   } else {
-    // 両側に収まらない場合は画面中央寄り
-    bTop=Math.max(safeTop+4,Math.min(r.bottom+8,safeBot-bh-4));
+    // どちらにも収まらない → セーフゾーン内中央
+    bTop=Math.max(safeTop+6,Math.min(safeBot-bh-6,(safeTop+safeBot-bh)/2));
   }
+
   box.style.left=bLeft+'px';
   box.style.top=bTop+'px';
 }
