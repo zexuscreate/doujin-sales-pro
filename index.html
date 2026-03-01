@@ -2128,15 +2128,30 @@ function showTutStep(idx){
   tutCur=idx;
   var step=steps[idx];
   var el=tutTarget(step);
-  var spot=document.getElementById('tutSpot');
-  var box=document.getElementById('tutBox');
-  if(el){
-    el.scrollIntoView({behavior:'smooth',block:'nearest'});
-    setTimeout(function(){_posTut(el,steps.length);},el.getBoundingClientRect().top<0||el.getBoundingClientRect().bottom>window.innerHeight?260:20);
-  } else {
-    spot.style.display='none';
+  if(!el){
+    document.getElementById('tutSpot').style.display='none';
     _posTutCenter(steps.length);
+    return;
   }
+  // 固定バーの高さを取得
+  var HEADER_H=48;   // ヘッダー高さ
+  var BOTTOM_H=200;  // ボトムナビ＋会計バー分の余裕
+  var mc=document.querySelector('.mc');
+  if(mc){
+    var r=el.getBoundingClientRect();
+    var mcR=mc.getBoundingClientRect();
+    var visTop=mcR.top+HEADER_H;
+    var visBot=mcR.bottom-BOTTOM_H;
+    // 要素が見えていない、または固定バーに隠れている場合スクロール
+    if(r.top<visTop||r.bottom>visBot){
+      var targetScroll=mc.scrollTop+(r.top-mcR.top)-HEADER_H-20;
+      mc.scrollTo({top:targetScroll,behavior:'smooth'});
+      // スクロール完了を待ってから位置計算
+      setTimeout(function(){_posTut(el,steps.length);},320);
+      return;
+    }
+  }
+  _posTut(el,steps.length);
 }
 
 function _posTut(el,total){
@@ -2145,6 +2160,21 @@ function _posTut(el,total){
   var box=document.getElementById('tutBox');
   var r=el.getBoundingClientRect();
   var pad=5,vw=window.innerWidth,vh=window.innerHeight;
+  // 固定バー定数（スポットライト・吹き出しの配置に使用）
+  var HEADER_H=48,BOT_NAV=56,COB_H=130;
+  var safeTop=HEADER_H+4;
+  var safeBot=vh-BOT_NAV-4;
+  // 要素がまだ固定バーに隠れていたら再スクロール後に再試行
+  if(r.top<safeTop||r.bottom>safeBot){
+    var mc=document.querySelector('.mc');
+    if(mc){
+      var mcR=mc.getBoundingClientRect();
+      var targetScroll=mc.scrollTop+(r.top-mcR.top)-HEADER_H-20;
+      mc.scrollTo({top:targetScroll,behavior:'smooth'});
+      setTimeout(function(){_posTut(el,total);},320);
+      return;
+    }
+  }
   // Spotlight
   spot.style.cssText='display:block;position:fixed;'
     +'left:'+(r.left-pad)+'px;top:'+(r.top-pad)+'px;'
@@ -2152,16 +2182,23 @@ function _posTut(el,total){
     +'border-radius:8px;z-index:9001;pointer-events:none;'
     +'outline:2.5px solid var(--accent);outline-offset:1px;'
     +'box-shadow:0 0 0 9999px rgba(0,0,0,.73);';
-  // Box content
+  // 吹き出しボックス
   _renderBox(box,step,total);
   box.style.display='block';
-  // Positioning: prefer below, else above
   var bh=box.offsetHeight||150,bw=box.offsetWidth||288;
   var bLeft=Math.max(10,Math.min(r.left+(r.width/2)-(bw/2),vw-bw-10));
   var bTop;
-  if(r.bottom+bh+16<vh){bTop=r.bottom+pad+12;}
-  else if(r.top-bh-16>0){bTop=r.top-pad-bh-12;}
-  else{bTop=Math.max(10,Math.min(r.bottom+8,vh-bh-10));}
+  // 下に置けるか（ボトムナビより上に収まるか）
+  var spaceBelow=safeBot-r.bottom-12;
+  var spaceAbove=r.top-safeTop-12;
+  if(spaceBelow>=bh){
+    bTop=r.bottom+pad+12;
+  } else if(spaceAbove>=bh){
+    bTop=r.top-pad-bh-12;
+  } else {
+    // 両側に収まらない場合は画面中央寄り
+    bTop=Math.max(safeTop+4,Math.min(r.bottom+8,safeBot-bh-4));
+  }
   box.style.left=bLeft+'px';
   box.style.top=bTop+'px';
 }
