@@ -2134,41 +2134,58 @@ function showTutStep(idx){
     _posTutCenter(steps.length);
     return;
   }
+  var total=steps.length;
+
+  // 要素がposition:fixedの祖先の中にいる場合はスクロール不要
+  if(_isInFixed(el)){
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      _doSpotlight(el,total);
+    });});
+    return;
+  }
+
   var mc=document.querySelector('.mc');
-  var sz=_safeZone();
+  var sz=_safeZone(el);
   var PAD=14;
   var r=el.getBoundingClientRect();
   var safeH=sz.bot-sz.top;
 
-  // mc.scrollTop を調整して要素をセーフゾーン内に完全表示
   if(mc){
     var need=null;
     if(r.height<=safeH-PAD*2){
-      // 要素全体が収まるサイズ
       if(r.top<sz.top+PAD){
         need=mc.scrollTop+(r.top-sz.top-PAD);
       } else if(r.bottom>sz.bot-PAD){
         need=mc.scrollTop+(r.bottom-sz.bot+PAD);
       }
     } else {
-      // 大きすぎる要素→上端をセーフゾーン上端に揃える
       need=mc.scrollTop+(r.top-sz.top-PAD);
     }
     if(need!==null) mc.scrollTop=Math.max(0,need);
   }
 
-  // scrollTopは同期だが描画反映はrAF後→2フレーム待って座標再取得
   requestAnimationFrame(function(){requestAnimationFrame(function(){
-    _doSpotlight(el,steps.length);
+    _doSpotlight(el,total);
   });});
 }
 
-function _safeZone(){
+// 要素がposition:fixedの祖先を持つか判定
+function _isInFixed(el){
+  var node=el.parentElement;
+  while(node&&node!==document.body){
+    if(getComputedStyle(node).position==='fixed') return true;
+    node=node.parentElement;
+  }
+  return false;
+}
+
+function _safeZone(el){
   var header=document.querySelector('.header');
   var bnav=document.querySelector('.bnav');
   var top=(header?header.getBoundingClientRect().bottom:48)+4;
   var bot=(bnav?bnav.getBoundingClientRect().top:window.innerHeight-56)-4;
-  if(tutPage==='register'){
+  // レジページでも、対象要素がcob内なら cob制限を適用しない
+  if(tutPage==='register' && !_isInFixed(el)){
     var cob=document.querySelector('.cob');
     if(cob) bot=Math.min(bot,cob.getBoundingClientRect().top-4);
   }
@@ -2179,7 +2196,7 @@ function _doSpotlight(el,total){
   var step=TUTS[tutPage][tutCur];
   var spot=document.getElementById('tutSpot');
   var box=document.getElementById('tutBox');
-  var sz=_safeZone();
+  var sz=_safeZone(el);
   var vw=window.innerWidth;
   var pad=5;
 
