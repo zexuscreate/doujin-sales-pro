@@ -21,7 +21,9 @@
 }
 .light{--bg:#f0f0f8;--bg2:#e4e4f0;--bg3:#d8d8ec;--card:#fff;--card2:#f8f8ff;--border:#d0d0e8;--text:#1a1a2e;--text2:#4a4a6a;--text3:#8a8aaa;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:14px;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);height:100%;overflow-x:hidden;font-size:14px;}
+html{height:100%;}
+#mainApp{display:flex;flex-direction:column;height:100vh;}
 
 /* ---- LOADING SCREEN ---- */
 #loadingScreen{
@@ -1935,7 +1937,7 @@ function showAuthErr(msg){var el=document.getElementById('loginErr');el.textCont
 async function onLogin(user){
   currentUser=user;
   document.getElementById('loginScreen').classList.remove('show');
-  document.getElementById('mainApp').style.display='block';
+  document.getElementById('mainApp').style.display='flex';
   document.getElementById('userBtn').title=user.email||'ログイン中';
   var key='djp_v4_'+user.id;
   localStorage.setItem('djp_user_key',key);
@@ -1991,7 +1993,7 @@ function enterLocalMode(){
   loadData(lsKey);
   applyTheme();
   document.getElementById('loginScreen').classList.remove('show');
-  document.getElementById('mainApp').style.display='block';
+  document.getElementById('mainApp').style.display='flex';
   document.getElementById('userBtn').title='ローカルモード';
   document.getElementById('userBtn').textContent='📱';
   renderPage();
@@ -2126,100 +2128,112 @@ function showTutStep(idx){
   var steps=TUTS[tutPage];
   if(!steps||idx<0||idx>=steps.length){closeTutorial();return;}
   tutCur=idx;
-  var step=steps[idx];
-  var el=tutTarget(step);
+  var el=tutTarget(steps[idx]);
   if(!el){
     document.getElementById('tutSpot').style.display='none';
     _posTutCenter(steps.length);
     return;
   }
-  _scrollToEl(el,null);
+  var mc=document.querySelector('.mc');
+  var sz=_safeZone();
+  var PAD=14;
+  var r=el.getBoundingClientRect();
+  var safeH=sz.bot-sz.top;
+
+  // mc.scrollTop を調整して要素をセーフゾーン内に完全表示
+  if(mc){
+    var need=null;
+    if(r.height<=safeH-PAD*2){
+      // 要素全体が収まるサイズ
+      if(r.top<sz.top+PAD){
+        need=mc.scrollTop+(r.top-sz.top-PAD);
+      } else if(r.bottom>sz.bot-PAD){
+        need=mc.scrollTop+(r.bottom-sz.bot+PAD);
+      }
+    } else {
+      // 大きすぎる要素→上端をセーフゾーン上端に揃える
+      need=mc.scrollTop+(r.top-sz.top-PAD);
+    }
+    if(need!==null) mc.scrollTop=Math.max(0,need);
+  }
+
+  // scrollTopは同期だが描画反映はrAF後→2フレーム待って座標再取得
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+    _doSpotlight(el,steps.length);
+  });});
 }
 
-// 固定バーを避けたセーフゾーンを返す
 function _safeZone(){
   var header=document.querySelector('.header');
   var bnav=document.querySelector('.bnav');
-  var top=(header?header.getBoundingClientRect().bottom:48)+8;
-  var bot=(bnav?bnav.getBoundingClientRect().top:window.innerHeight-56)-8;
-  // レジページは会計バーも避ける
+  var top=(header?header.getBoundingClientRect().bottom:48)+4;
+  var bot=(bnav?bnav.getBoundingClientRect().top:window.innerHeight-56)-4;
   if(tutPage==='register'){
     var cob=document.querySelector('.cob');
-    if(cob)bot=Math.min(bot,cob.getBoundingClientRect().top-8);
+    if(cob) bot=Math.min(bot,cob.getBoundingClientRect().top-4);
   }
   return{top:top,bot:bot};
 }
 
-// 要素が見えるよう window をスクロールしてからcallback
-function _scrollToEl(el,cb){
-  var sz=_safeZone();
-  var margin=20;
-  var r=el.getBoundingClientRect();
-
-  // 要素上端をセーフゾーン上端+marginに合わせたいスクロール量
-  var currentScrollY=window.pageYOffset||document.documentElement.scrollTop;
-  var targetY=currentScrollY+(r.top-sz.top-margin);
-  targetY=Math.max(0,targetY);
-
-  window.scrollTo(0,targetY);
-
-  // scrollTo は同期的にscrollYを更新する → rAF2回で描画確定後に位置計算
-  requestAnimationFrame(function(){
-    requestAnimationFrame(function(){
-      _posTut(el,TUTS[tutPage]?TUTS[tutPage].length:0);
-    });
-  });
-}
-
-function steps_of_cur(){return TUTS[tutPage]?TUTS[tutPage].length:0;}
-function elFitsInZone(r,sz){return r.height<=(sz.bot-sz.top-32);}
-
-function _posTut(el,total){
+function _doSpotlight(el,total){
   var step=TUTS[tutPage][tutCur];
   var spot=document.getElementById('tutSpot');
   var box=document.getElementById('tutBox');
-  var r=el.getBoundingClientRect();
   var sz=_safeZone();
-  var pad=5,vw=window.innerWidth;
+  var vw=window.innerWidth;
+  var pad=5;
 
-  // スポットライトをセーフゾーンにクリップ
-  var spotTop=Math.max(r.top-pad, sz.top);
-  var spotBot=Math.min(r.bottom+pad, sz.bot);
-  var spotH=Math.max(4, spotBot-spotTop);
+  // スクロール後の最新座標
+  var r=el.getBoundingClientRect();
 
-  spot.style.cssText='display:block;position:fixed;'
-    +'left:'+(r.left-pad)+'px;top:'+spotTop+'px;'
-    +'width:'+(r.width+pad*2)+'px;height:'+spotH+'px;'
-    +'border-radius:8px;z-index:9001;pointer-events:none;'
-    +'outline:2.5px solid var(--accent);outline-offset:1px;'
+  // スポット（セーフゾーン内にクリップ）
+  var sTop=Math.max(r.top-pad, sz.top);
+  var sBot=Math.min(r.bottom+pad, sz.bot);
+  spot.style.cssText='display:block;position:fixed;z-index:9001;pointer-events:none;'
+    +'left:'+(r.left-pad)+'px;top:'+sTop+'px;'
+    +'width:'+(r.width+pad*2)+'px;height:'+Math.max(4,sBot-sTop)+'px;'
+    +'border-radius:8px;outline:2.5px solid var(--accent);outline-offset:1px;'
     +'box-shadow:0 0 0 9999px rgba(0,0,0,.73);';
 
-  // 吹き出しボックス
+  // 吹き出し：画面外で高さ計測してから正位置へ
   _renderBox(box,step,total);
-  box.style.display='block';
-  var bh=box.offsetHeight||150,bw=box.offsetWidth||288;
+  box.style.cssText='display:block;visibility:hidden;position:fixed;z-index:9002;'
+    +'left:0;top:0;'
+    +'width:min(288px,calc(100vw - 28px));'
+    +'background:var(--card);border:1.5px solid var(--accent);border-radius:12px;'
+    +'padding:14px 16px 12px;box-shadow:0 8px 36px rgba(0,0,0,.55);';
+  var bh=box.offsetHeight;
+  var bw=box.offsetWidth;
 
-  // 水平：要素中央、画面端に収める
-  var bLeft=Math.max(10,Math.min(r.left+(r.width/2)-(bw/2),vw-bw-10));
+  // 水平：要素の中央、画面端10pxずつ確保
+  var bLeft=Math.max(10, Math.min(r.left+(r.width/2)-(bw/2), vw-bw-10));
 
-  // 垂直：スポット下→スポット上→セーフゾーン内中央
+  // 垂直：スポット下→上→強制セーフゾーン内
   var bTop;
-  if(spotBot+12+bh<=sz.bot){
-    bTop=spotBot+10;
-  } else if(spotTop-12-bh>=sz.top){
-    bTop=spotTop-bh-10;
+  if(sBot+10+bh<=sz.bot){
+    bTop=sBot+10;
+  } else if(sTop-10-bh>=sz.top){
+    bTop=sTop-10-bh;
   } else {
-    bTop=Math.max(sz.top+4, Math.round((sz.top+sz.bot-bh)/2));
+    bTop=sz.bot-bh-4;
   }
+  // 最終クランプ：セーフゾーンから絶対にはみ出さない
+  bTop=Math.max(sz.top+4, Math.min(bTop, sz.bot-bh-4));
+
   box.style.left=bLeft+'px';
   box.style.top=bTop+'px';
+  box.style.visibility='visible';
 }
+
 
 function _posTutCenter(total){
   var step=TUTS[tutPage][tutCur];
   var box=document.getElementById('tutBox');
   _renderBox(box,step,total);
-  box.style.display='block';
+  box.style.cssText='display:block;position:fixed;z-index:9002;left:-9999px;top:-9999px;'
+    +'background:var(--card);border:1.5px solid var(--accent);border-radius:12px;'
+    +'padding:14px 16px 12px;width:min(288px,calc(100vw - 28px));'
+    +'box-shadow:0 8px 36px rgba(0,0,0,.55);';
   var bh=box.offsetHeight||160,bw=box.offsetWidth||288;
   box.style.left=Math.max(10,(window.innerWidth-bw)/2)+'px';
   box.style.top=Math.max(10,(window.innerHeight-bh)/2)+'px';
@@ -2265,7 +2279,7 @@ window.addEventListener('offline',function(){document.getElementById('sdot').cla
     loadData(lsKey);
     applyTheme();
     document.getElementById('loadingScreen').classList.add('hide');
-    document.getElementById('mainApp').style.display='block';
+    document.getElementById('mainApp').style.display='flex';
     document.getElementById('userBtn').title='ローカルモード';
     document.getElementById('userBtn').textContent='📱';
     renderReg();
@@ -2300,7 +2314,7 @@ window.addEventListener('offline',function(){document.getElementById('sdot').cla
     var lsKey=localStorage.getItem('djp_user_key')||'djp_v4';
     loadData(lsKey);
     applyTheme();
-    document.getElementById('mainApp').style.display='block';
+    document.getElementById('mainApp').style.display='flex';
     renderReg();
   }
 })();
