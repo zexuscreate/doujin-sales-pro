@@ -2133,7 +2133,7 @@ function showTutStep(idx){
     _posTutCenter(steps.length);
     return;
   }
-  _scrollToEl(el,function(){_posTut(el,steps.length);});
+  _scrollToEl(el,null);
 }
 
 // 固定バーを避けたセーフゾーンを返す
@@ -2150,32 +2150,36 @@ function _safeZone(){
   return{top:top,bot:bot};
 }
 
-// 要素をセーフゾーン内に収まるよう即時スクロールしてcallback
+// 要素が見えるよう .mc をスクロールしてからcallback
 function _scrollToEl(el,cb){
   var mc=document.querySelector('.mc');
   if(!mc){cb();return;}
+
   var sz=_safeZone();
-  var r=el.getBoundingClientRect();
-  var safeH=sz.bot-sz.top;
-  var elH=r.height;
   var margin=20;
-  var delta=0;
-  if(r.top<sz.top+margin){
-    // 上が隠れている：要素上端をsafeTop+marginに
-    delta=r.top-(sz.top+margin);
-  } else if(r.bottom>sz.bot-margin && elH<safeH){
-    // 下が隠れている（かつ要素がセーフゾーンより小さい場合）
-    delta=r.bottom-(sz.bot-margin);
-  }
-  if(delta!==0){
-    mc.scrollTop=Math.max(0,mc.scrollTop+delta);
-  }
-  // scrollTop は同期的に反映される。rAF1回でDOM再描画後に座標取得
-  requestAnimationFrame(cb);
+
+  // 要素のビューポート上の現在位置
+  var r=el.getBoundingClientRect();
+
+  // 目標: 要素の上端を safeTop+margin の位置に持ってくる
+  // 現在 r.top にある要素を sz.top+margin に移動したい
+  // scrollTop を (r.top - sz.top - margin) だけ増やせばよい
+  var newScrollTop=mc.scrollTop+(r.top-sz.top-margin);
+  mc.scrollTop=Math.max(0,newScrollTop);
+
+  // scrollTop は同期的に反映される → rAF1回で確実に描画後に座標取得
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      _posTut(el,steps_of_cur());
+    });
+  });
 }
 
-function _getSafeTop(){return _safeZone().top;}
-function _getSafeBot(){return _safeZone().bot;}
+function steps_of_cur(){return TUTS[tutPage]?TUTS[tutPage].length:0;}
+
+function elFitsInZone(r,sz){
+  return r.height<=(sz.bot-sz.top-32);
+}
 
 function _posTut(el,total){
   var step=TUTS[tutPage][tutCur];
@@ -2185,10 +2189,14 @@ function _posTut(el,total){
   var sz=_safeZone();
   var pad=5,vw=window.innerWidth;
 
-  // Spotlight
+  // スポットライトをセーフゾーンにクリップ
+  var spotTop=Math.max(r.top-pad, sz.top);
+  var spotBot=Math.min(r.bottom+pad, sz.bot);
+  var spotH=Math.max(4, spotBot-spotTop);
+
   spot.style.cssText='display:block;position:fixed;'
-    +'left:'+(r.left-pad)+'px;top:'+(r.top-pad)+'px;'
-    +'width:'+(r.width+pad*2)+'px;height:'+(r.height+pad*2)+'px;'
+    +'left:'+(r.left-pad)+'px;top:'+spotTop+'px;'
+    +'width:'+(r.width+pad*2)+'px;height:'+spotH+'px;'
     +'border-radius:8px;z-index:9001;pointer-events:none;'
     +'outline:2.5px solid var(--accent);outline-offset:1px;'
     +'box-shadow:0 0 0 9999px rgba(0,0,0,.73);';
@@ -2201,15 +2209,14 @@ function _posTut(el,total){
   // 水平：要素中央、画面端に収める
   var bLeft=Math.max(10,Math.min(r.left+(r.width/2)-(bw/2),vw-bw-10));
 
-  // 垂直：要素の下→上→セーフゾーン内で最適な位置
+  // 垂直：スポット下→スポット上→セーフゾーン内中央
   var bTop;
-  if(r.bottom+12+bh<=sz.bot){
-    bTop=r.bottom+pad+10;
-  } else if(r.top-12-bh>=sz.top){
-    bTop=r.top-pad-bh-10;
+  if(spotBot+12+bh<=sz.bot){
+    bTop=spotBot+10;
+  } else if(spotTop-12-bh>=sz.top){
+    bTop=spotTop-bh-10;
   } else {
-    // どちらにも入らない場合：セーフゾーン内中央
-    bTop=Math.max(sz.top+4,(sz.top+sz.bot-bh)/2);
+    bTop=Math.max(sz.top+4, Math.round((sz.top+sz.bot-bh)/2));
   }
   box.style.left=bLeft+'px';
   box.style.top=bTop+'px';
