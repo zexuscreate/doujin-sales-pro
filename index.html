@@ -23,6 +23,19 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:14px;}
 
+/* ---- LOADING SCREEN ---- */
+#loadingScreen{
+  position:fixed;inset:0;z-index:10000;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+}
+#loadingScreen.hide{display:none;}
+.ldot-wrap{display:flex;gap:8px;}
+.ldot{width:10px;height:10px;border-radius:50%;background:var(--accent);animation:ldpulse 1.2s ease-in-out infinite;}
+.ldot:nth-child(2){animation-delay:.2s;}
+.ldot:nth-child(3){animation-delay:.4s;}
+@keyframes ldpulse{0%,80%,100%{opacity:.2;transform:scale(.8);}40%{opacity:1;transform:scale(1.1);}}
+
 /* ---- LOGIN SCREEN ---- */
 #loginScreen{
   display:none; /* JSで表示制御 */
@@ -100,7 +113,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .tprice{font-size:12px;color:var(--accent);font-weight:700;font-family:'Space Mono',monospace;}
 .tcnt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:42px;font-weight:900;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.9);pointer-events:none;display:none;}
 .tcnt.vis{display:block;}
-.tstk{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.65);color:var(--text2);font-size:10px;padding:2px 6px;border-radius:4px;}
+.tstk{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.65);color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;}
 .tstk.low{color:var(--yellow);}
 .tstk.zero{color:var(--red);}
 .solay{position:absolute;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;}
@@ -161,10 +174,11 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .stc{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:11px;}
 .slb{font-size:10px;color:var(--text2);margin-bottom:3px;letter-spacing:.5px;}
 .sv{font-size:19px;font-weight:700;font-family:'Space Mono',monospace;}
-.sv.g{color:var(--green);}
+.sv.g{color:#ffffff;}
 .sv.c{color:var(--cyan);}
 .sv.y{color:var(--yellow);}
 .sv.pk{color:var(--pink);}
+.sv.or{color:#f97316;}
 
 /* ---- CHARTS ---- */
 .simch{width:100%;height:175px;margin:11px 0;}
@@ -292,21 +306,49 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .ddbtn{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:26px;height:26px;border:none;background:none;color:var(--text3);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:4px;z-index:1;}
 .ddbtn:hover{background:var(--bg3);}
 
+/* ---- CHART GRID ---- */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
+@media(max-aspect-ratio:9/19.5){
+  .chart-grid{grid-template-columns:1fr;}
+}
+
 /* ---- SCROLLBAR ---- */
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-track{background:var(--bg2);}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
-/* ---- RESPONSIVE ---- */
-@media(min-width:768px){
-  .mc{max-width:820px;margin:0 auto;}
-  .pgrid{grid-template-columns:repeat(3,1fr);}
-  .sgrid{grid-template-columns:repeat(4,1fr);}
-  .bnav,.cob{max-width:820px;left:50%;transform:translateX(-50%);border-left:1px solid var(--border);border-right:1px solid var(--border);}
-}
+/* ---- TUTORIAL ---- */
+#tutOverlay{position:fixed;inset:0;z-index:8999;background:transparent;pointer-events:none;}
+#tutOverlay.active{pointer-events:all;}
+#tutSpot{display:none;position:fixed;border-radius:8px;z-index:9001;pointer-events:none;outline:2.5px solid var(--accent);outline-offset:1px;box-shadow:0 0 0 9999px rgba(0,0,0,0.73);transition:left .22s ease,top .22s ease,width .22s ease,height .22s ease;}
+#tutBox{display:none;position:fixed;z-index:9002;background:var(--card);border:1.5px solid var(--accent);border-radius:12px;padding:14px 16px 12px;width:min(288px,calc(100vw - 28px));box-shadow:0 8px 36px rgba(0,0,0,.55);}
+.tut-prog{display:flex;gap:4px;margin-bottom:10px;}
+.tut-pip{height:3px;flex:1;border-radius:2px;background:var(--border);}
+.tut-pip.done{background:var(--accent);}
+.tut-pip.cur{background:var(--cyan);}
+.tut-title{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px;}
+.tut-body{font-size:12px;color:var(--text);line-height:1.65;margin-bottom:13px;}
+.tut-nav{display:flex;align-items:center;gap:6px;justify-content:flex-end;}
+.tut-close{background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;margin-right:auto;padding:3px 0;}
+.tut-prev{padding:5px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);color:var(--text);font-size:12px;cursor:pointer;}
+.tut-next{padding:5px 14px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer;}
+.tut-done{padding:5px 14px;border:none;border-radius:6px;background:var(--green);color:#fff;font-size:12px;font-weight:700;cursor:pointer;}
+.tut-btn{position:fixed;z-index:8990;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg3);color:var(--text2);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3);transition:background .15s;}
+.tut-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
 </style>
 </head>
 <body>
+
+<div id="tutOverlay" onclick="closeTutorial()"></div>
+<div id="tutSpot"></div>
+<div id="tutBox"></div>
+
+<!-- ================================================================ LOADING SCREEN -->
+<div id="loadingScreen">
+  <div style="font-family:'Dela Gothic One',cursive;font-size:36px;letter-spacing:4px;background:linear-gradient(135deg,#7c6af7,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">レジろぐ</div>
+  <div class="ldot-wrap"><div class="ldot"></div><div class="ldot"></div><div class="ldot"></div></div>
+  <div style="font-size:11px;color:var(--text3);">読み込み中…</div>
+</div>
 
 <!-- ================================================================ LOGIN SCREEN -->
 <div id="loginScreen">
@@ -314,15 +356,6 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   <div style="font-family:'Zen Maru Gothic',sans-serif;font-size:13px;color:var(--text2);margin-bottom:40px;letter-spacing:2px;">同人誌レジ＆売上記録アプリ</div>
   <div style="width:100%;max-width:340px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;">
     <div id="loginErr" style="display:none;background:rgba(248,113,113,.15);border:1px solid var(--red);border-radius:8px;padding:10px;margin-bottom:14px;font-size:12px;color:var(--red);"></div>
-    <button onclick="loginWithGoogle()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:13px;background:#fff;color:#333;border:1px solid #ddd;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;margin-bottom:16px;">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      Googleでログイン
-    </button>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-      <div style="flex:1;height:1px;background:var(--border);"></div>
-      <span style="font-size:11px;color:var(--text3);">またはメールで</span>
-      <div style="flex:1;height:1px;background:var(--border);"></div>
-    </div>
     <div style="display:flex;gap:4px;margin-bottom:16px;background:var(--bg3);border-radius:8px;padding:3px;">
       <button id="tabLogin" onclick="switchAuthTab('login')" style="flex:1;padding:7px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;">ログイン</button>
       <button id="tabSignup" onclick="switchAuthTab('signup')" style="flex:1;padding:7px;border:none;border-radius:6px;background:transparent;color:var(--text2);font-size:13px;cursor:pointer;">新規登録</button>
@@ -335,6 +368,17 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     </div>
   </div>
   <div style="margin-top:20px;font-size:11px;color:var(--text3);text-align:center;">データはSupabaseクラウドに安全に保存されます</div>
+  <div style="margin-top:24px;width:100%;max-width:340px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:11px;color:var(--text3);">または</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+    <button onclick="enterLocalMode()" style="width:100%;padding:12px;background:transparent;color:var(--text2);border:1px dashed var(--border);border-radius:10px;font-size:13px;cursor:pointer;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)';" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)';">
+      📱 このデバイスだけで使う（ローカルモード）
+    </button>
+    <div style="margin-top:8px;font-size:10px;color:var(--text3);text-align:center;">ログイン不要・データはこのデバイスにのみ保存されます</div>
+  </div>
 </div>
 
 <!-- ================================================================ MAIN APP -->
@@ -342,6 +386,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 <div class="header">
   <div class="htitle">📚 DOUJIN Regi Log</div>
   <span class="sdot" id="sdot"></span>
+  <button class="ibt" onclick="startTutorial()" title="使い方">？</button>
   <button class="ibt" onclick="toggleTheme()" id="themeBtn">☀️</button>
   <button class="hbtn" id="userBtn" onclick="showUserMenu()">👤</button>
 </div>
@@ -380,8 +425,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <h2 style="font-size:16px;font-weight:700;">商品管理</h2>
       <div style="display:flex;gap:5px;">
-        <button class="btn bg bsm" onclick="dlTpl('products')">📋 テンプレ</button>
-        <button class="btn bg bsm" onclick="importCSV('products')">📥 CSV取込</button>
+        <button class="btn bg bsm" onclick="dlTpl('products')">📋 取込用テンプレ出力</button>
+        <button class="btn bg bsm" onclick="importCSV('products')">📥 テンプレ取込</button>
         <button class="btn bp bsm" onclick="openAddProduct()">＋ 追加</button>
       </div>
     </div>
@@ -393,8 +438,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <h2 style="font-size:16px;font-weight:700;">イベント管理</h2>
       <div style="display:flex;gap:5px;">
-        <button class="btn bg bsm" onclick="dlTpl('events')">📋 テンプレ</button>
-        <button class="btn bg bsm" onclick="importCSV('events')">📥 CSV取込</button>
+        <button class="btn bg bsm" onclick="dlTpl('events')">📋 取込用テンプレ出力</button>
+        <button class="btn bg bsm" onclick="importCSV('events')">📥 テンプレ取込</button>
         <button class="btn bp bsm" onclick="openAddEvent()">＋ 追加</button>
       </div>
     </div>
@@ -406,7 +451,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;">
       <h2 style="font-size:16px;font-weight:700;">売上分析</h2>
       <div style="display:flex;gap:5px;">
-        <button class="btn bg bsm" onclick="dlTpl('analytics')">📋 テンプレ</button>
+        <button class="btn bg bsm" onclick="dlTpl('analytics')">📋 外部集計取込用テンプレ出力</button>
+        <button class="btn bg bsm" onclick="importCSV('analytics')">📥 外部取込</button>
         <button class="btn bg bsm" onclick="exportAnalytics()">📤 CSV出力</button>
         <button class="btn bd bsm" onclick="confirmResetSales()">🗑 リセット</button>
       </div>
@@ -421,12 +467,6 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     <div class="sgrid" id="statsGrid"></div>
     <div class="card">
       <div class="ch"><span class="ct">時間別グラフ</span></div>
-      <div class="tog" style="margin-bottom:10px;flex-wrap:wrap;">
-        <button class="togb active" id="yCount" onclick="togYA('count')" style="flex:1;min-width:80px;text-align:center;padding:6px 4px;">📦 時間帯別部数</button>
-        <button class="togb" id="yCumMoney" onclick="togYA('cumMoney')" style="flex:1;min-width:80px;text-align:center;padding:6px 4px;">📈 累計金額</button>
-        <button class="togb" id="yCumCount" onclick="togYA('cumCount')" style="flex:1;min-width:80px;text-align:center;padding:6px 4px;">📈 累計部数</button>
-        <button class="togb" id="yCumTotalMoney" onclick="togYA('cumTotalMoney')" style="flex:1;min-width:80px;text-align:center;padding:6px 4px;">💹 累計売上金額</button>
-      </div>
       <div style="display:flex;gap:5px;margin-bottom:7px;align-items:center;flex-wrap:wrap;">
         <span style="font-size:11px;color:var(--text2);">X軸:</span>
         <input type="number" id="xS" value="10" min="0" max="23" style="width:46px;font-size:11px;padding:2px 4px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);" onchange="renderChart()">
@@ -436,10 +476,31 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       </div>
       <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">表示商品:</div>
       <div class="prod-checks" id="prodChecks"></div>
-      <div id="salesCh" style="width:100%;height:220px;"></div>
+      <!-- 2カラムチャート -->
+      <div class="chart-grid">
+        <!-- 左: 部数グラフ -->
+        <div>
+          <div style="font-size:10px;color:var(--text2);margin-bottom:4px;letter-spacing:.5px;">📦 部数</div>
+          <div class="tog" style="margin-bottom:5px;flex-wrap:wrap;gap:2px;">
+            <button class="togb active" id="yCount" onclick="togCA('count')" style="flex:1;min-width:52px;text-align:center;padding:4px 3px;font-size:10px;">帯別</button>
+            <button class="togb" id="yCumCount" onclick="togCA('cumCount')" style="flex:1;min-width:52px;text-align:center;padding:4px 3px;font-size:10px;">累計</button>
+          </div>
+          <div id="countCh" style="width:100%;"></div>
+        </div>
+        <!-- 右: 金額グラフ -->
+        <div>
+          <div style="font-size:10px;color:var(--text2);margin-bottom:4px;letter-spacing:.5px;">💴 金額</div>
+          <div class="tog" style="margin-bottom:5px;flex-wrap:wrap;gap:2px;">
+            <button class="togb" id="yMoney" onclick="togMA('money')" style="flex:1;min-width:40px;text-align:center;padding:4px 2px;font-size:10px;">帯別</button>
+            <button class="togb" id="yCumMoney" onclick="togMA('cumMoney')" style="flex:1;min-width:40px;text-align:center;padding:4px 2px;font-size:10px;">累計</button>
+            <button class="togb active" id="yCumTotalMoney" onclick="togMA('cumTotalMoney')" style="flex:1;min-width:40px;text-align:center;padding:4px 2px;font-size:10px;">合計</button>
+          </div>
+          <div id="moneyCh" style="width:100%;"></div>
+        </div>
+      </div>
       <div id="soldoutTimeline" style="margin-top:8px;"></div>
     </div>
-    <div class="card"><div class="ch"><span class="ct">商品別シェア</span></div><div id="shareCh" style="height:155px;"></div></div>
+    <div class="card"><div class="ch"><span class="ct">商品別シェア</span></div><div id="shareCh"></div></div>
     <div class="card"><div class="ch"><span class="ct">売上履歴</span></div><div id="salesHist"></div></div>
   </div>
 
@@ -448,7 +509,6 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;">
       <h2 style="font-size:16px;font-weight:700;">損益シミュレーション</h2>
       <div style="display:flex;gap:5px;">
-        <button class="btn bg bsm" onclick="dlTpl('sim')">📋 テンプレ</button>
         <button class="btn bg bsm" onclick="exportSim()">📤 CSV出力</button>
       </div>
     </div>
@@ -531,7 +591,12 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 var S={theme:'dark',vm:'card',page:'register',evId:null,anEvId:null,anMode:'cost',simIdx:0,simMode:'cost',simEvId:null,yAxisSet:null,cart:{},pp:0,npTarget:null,npCb:null};
 var npVal='0',simOvr={},csvTarget=null;
 var openAcc=new Set();
-var anProdFilter=null;
+var anProdFilter=null;      // 後方互換用（fSalesFiltered で使用）
+var anEvPidsKnown=null;    // 未使用（互換のため残す）
+var anProdChoices={};      // pid -> true/false  イベントをまたいで永続保持
+
+// ページ切り替え時に全選択リセット（showPage から呼ぶ）
+function resetAnFilter(){anProdChoices={};anProdFilter=null;anEvPidsKnown=null;}
 var imgPid=null,imgDataUrl=null;
 
 // ================================================================ HELPERS
@@ -545,7 +610,27 @@ function totCost(p){
     return s+(c.amount||0);
   },0);
 }
-function unitCost(p){var o=totOrd(p);return o>0?Math.round(totCost(p)/o):0;}
+function unitCost(p){var o=totOrd(p);return o>0?totCost(p)/o:0;}
+// 版ごとの実効原価/部の合計（設定値 or 計算値を使う）
+function effUnitCost(p){
+  // 商品レベルのoverride（後方互換）が残っていれば使う
+  if(p.unitCostOvr!==undefined&&p.unitCostOvr!==null&&p.unitCostOvr!=='')return Number(p.unitCostOvr);
+  var eds=p.editions||[];
+  if(!eds.length)return unitCost(p);
+  // 版ごとに設定値 or 計算値を使って合計コストを算出
+  var totalEffCost=0,totalOrd=0;
+  eds.forEach(function(ed){
+    var edOrd=ed.ordered||0;
+    totalOrd+=edOrd;
+    if(ed.unitCostOvr!==undefined&&ed.unitCostOvr!==null&&ed.unitCostOvr!==''){
+      totalEffCost+=Number(ed.unitCostOvr)*edOrd;
+    } else {
+      var edCost=(p.costs||[]).reduce(function(s,c){return s+(c.perEdition&&c.perEdition[ed.id]?c.perEdition[ed.id]:0);},0);
+      totalEffCost+=edCost;
+    }
+  });
+  return totalOrd>0?totalEffCost/totalOrd:0;
+}
 function evProds(eid){var ev=S.e.find(function(e){return e.id===eid;});if(!ev)return[];return S.p.filter(function(p){return(ev.productIds||[]).includes(p.id);});}
 var PCOLS=['#7c6af7','#22d3ee','#4ade80','#fbbf24','#f472b6','#f87171','#60a5fa','#a78bfa'];
 function pCol(i){return PCOLS[i%PCOLS.length];}
@@ -579,16 +664,58 @@ function initSample(){
 }
 
 // ================================================================ STORAGE
+// ================================================================ DATA SYNC
+var _saveTimer=null;
+var _syncPending=false;
+
 function save(){
   var key=localStorage.getItem('djp_user_key')||'djp_v4';
-  try{localStorage.setItem(key,JSON.stringify({p:S.p,e:S.e,s:S.s,theme:S.theme}));}catch(x){}
+  var payload={p:S.p,e:S.e,s:S.s,theme:S.theme};
+  try{localStorage.setItem(key,JSON.stringify(payload));}catch(x){}
+  // クラウド同期（ローカルモードは除外）
+  if(currentUser&&sbClient&&localStorage.getItem('djp_local_mode')!=='1'){
+    clearTimeout(_saveTimer);
+    _saveTimer=setTimeout(function(){syncToCloud(payload);},1200);
+  }
 }
-function loadData(key){
+
+async function syncToCloud(payload){
+  if(!sbClient||!currentUser)return;
+  try{
+    var r=await sbClient.from('user_data').upsert({user_id:currentUser.id,data:payload,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+    if(r.error){console.warn('sync error',r.error);}
+    else{setSyncDot(true);}
+  }catch(e){console.warn('sync exception',e);}
+}
+
+function setSyncDot(ok){
+  var d=document.getElementById('sdot');if(!d)return;
+  d.classList.toggle('off',!ok);
+  d.title=ok?'クラウド同期済み':'同期中…';
+}
+
+async function loadData(key){
+  // まずlocalStorageから即時表示
   try{
     var d=JSON.parse(localStorage.getItem(key)||'null');
     if(d){S.p=d.p||[];S.e=d.e||[];S.s=d.s||[];S.theme=d.theme||'dark';}
     else{S.p=[];S.e=[];S.s=[];initSample();}
   }catch(e){S.p=[];S.e=[];S.s=[];initSample();}
+
+  // クラウドからより新しいデータがあれば上書き
+  if(currentUser&&sbClient&&localStorage.getItem('djp_local_mode')!=='1'){
+    try{
+      var r=await sbClient.from('user_data').select('data,updated_at').eq('user_id',currentUser.id).single();
+      if(r.data&&r.data.data){
+        var cd=r.data.data;
+        S.p=cd.p||[];S.e=cd.e||[];S.s=cd.s||[];S.theme=cd.theme||S.theme||'dark';
+        // ローカルにも書き戻す
+        try{localStorage.setItem(key,JSON.stringify({p:S.p,e:S.e,s:S.s,theme:S.theme}));}catch(x){}
+        setSyncDot(true);
+      }
+    }catch(e){console.warn('cloud load failed, using local',e);}
+    applyTheme();renderPage();
+  }
 }
 
 // ================================================================ THEME
@@ -606,6 +733,8 @@ function showPage(pg){
   document.querySelectorAll('.ni').forEach(function(x){x.classList.remove('active');});
   document.getElementById('page-'+pg).classList.add('active');
   document.querySelector('[data-page="'+pg+'"]').classList.add('active');
+  // 分析ページに入るときだけフィルターをリセット（全選択状態で開始）
+  if(pg==='analytics'){resetAnFilter();}
   renderPage();
 }
 function renderPage(){
@@ -667,7 +796,33 @@ function renderPList(p){
     +(cnt>0?'<button class="cbtn cbm" onclick="rmC(\''+p.id+'\',event)">−</button>':'<div style="width:28px;"></div>')
     +'</div></div>';
 }
-function addC(pid,ev){ev&&ev.stopPropagation();var p=S.p.find(function(x){return x.id===pid;});if(!p||p.stock<=0)return;var c=S.cart[pid]||0;if(c>=p.stock){showToast('在庫不足');return;}S.cart[pid]=c+1;updateCart();renderProdDisp();}
+function addC(pid,ev){
+  ev&&ev.stopPropagation();
+  var p=S.p.find(function(x){return x.id===pid;});
+  if(!p||p.stock<=0)return;
+  var eds=(p.editions||[]).filter(function(e){return (e.ordered||0)>0;});
+  if(eds.length>1){
+    // 版選択モーダル
+    var btns=eds.map(function(ed){
+      return '<button class="btn bg bfull" style="margin-bottom:7px;" onclick="addCWithEd(\''+pid+'\',\''+ed.id+'\');closeM();">'
+        +ed.label+' <span style="font-size:11px;color:var(--text3);">('+ed.ordered+'部)</span></button>';
+    }).join('');
+    openM('<div class="mtit">版を選択</div><div class="msub">'+p.title+'</div>'+btns
+      +'<button class="btn bg bfull" onclick="addCWithEd(\''+pid+'\',\'\');closeM();">版指定なし</button>'
+      +'<div class="mact" style="margin-top:7px;"><button class="btn bg" onclick="closeM()">キャンセル</button></div>');
+    return;
+  }
+  var eid=eds.length===1?eds[0].id:'';
+  addCWithEd(pid,eid);
+}
+function addCWithEd(pid,eid){
+  var p=S.p.find(function(x){return x.id===pid;});if(!p||p.stock<=0)return;
+  var c=S.cart[pid]||0;if(c>=p.stock){showToast('在庫不足');return;}
+  S.cart[pid]=c+1;
+  if(!S.cartEd)S.cartEd={};
+  S.cartEd[pid]=eid;
+  updateCart();renderProdDisp();
+}
 function rmC(pid,ev){ev&&ev.stopPropagation();var c=S.cart[pid]||0;if(c<=0)return;S.cart[pid]=c-1;if(!S.cart[pid])delete S.cart[pid];updateCart();renderProdDisp();}
 function updateCart(){
   var t=0;Object.entries(S.cart).forEach(function(e){var p=S.p.find(function(x){return x.id===e[0];});if(p)t+=p.price*e[1];});
@@ -694,8 +849,8 @@ function confirmSale(){
 }
 function execSale(){
   var now=new Date().toISOString();
-  Object.entries(S.cart).forEach(function(e){if(!e[1])return;var p=S.p.find(function(x){return x.id===e[0];});if(!p)return;S.s.push({id:uid(),eid:S.evId,pid:e[0],qty:e[1],price:p.price,ts:now});p.stock=Math.max(0,p.stock-e[1]);});
-  save();closeM();resetCart();renderProdDisp();showToast('✅ 会計完了！');
+  Object.entries(S.cart).forEach(function(e){if(!e[1])return;var p=S.p.find(function(x){return x.id===e[0];});if(!p)return;var edId=(S.cartEd&&S.cartEd[e[0]])||'';S.s.push({id:uid(),eid:S.evId,pid:e[0],qty:e[1],price:p.price,ts:now,edId:edId});p.stock=Math.max(0,p.stock-e[1]);});
+  S.cartEd={};save();closeM();resetCart();renderProdDisp();showToast('✅ 会計完了！');
 }
 
 // ================================================================ PRODUCT MANAGE
@@ -711,11 +866,12 @@ function renderPM(){
   restoreAcc();
 }
 function renderPMRow(p){
-  var ord=totOrd(p),uc=unitCost(p);
+  var ord=totOrd(p),uc=unitCost(p),euc=effUnitCost(p);
+  var eds=p.editions||[];
+  var edCount=eds.length;
   var sold=S.s.filter(function(s){return s.pid===p.id;}).reduce(function(a,x){return a+x.qty;},0);
   var isSoldOut=p.stock<=0;
   var cov=p.coverImg?'<img src="'+p.coverImg+'">':`<span style="font-size:24px;">${p.emoji||'📖'}</span>`;
-  var eds=p.editions||[];
   var edRows=eds.map(function(ed){
     var edCost=(p.costs||[]).reduce(function(s,c){return s+(c.perEdition&&c.perEdition[ed.id]?c.perEdition[ed.id]:0);},0);
     var edUC=ed.ordered>0?edCost/ed.ordered:0;
@@ -737,8 +893,9 @@ function renderPMRow(p){
       +'<div style="display:flex;align-items:center;gap:6px;padding:7px 9px;">'
       +'<input class="erinp lbl" value="'+ed.label.replace(/"/g,'&quot;')+'" onchange="updEdLbl(\''+p.id+'\',\''+ed.id+'\',this.value)" onclick="event.stopPropagation();this.select()">'
       +'<input class="erinp num" type="number" min="0" value="'+ed.ordered+'" onchange="updEd(\''+p.id+'\',\''+ed.id+'\',this.value)" onclick="event.stopPropagation();this.select()">'
-      +'<span style="font-size:9px;color:var(--text3);">部(総印刷数)</span>'
-      +'<span style="font-size:10px;color:var(--yellow);font-family:\'Space Mono\';flex:1;text-align:right;" id="uc-'+p.id+'-'+ed.id+'">¥'+Math.round(edUC).toLocaleString()+'/部</span>'
+      +'<span style="font-size:9px;color:var(--text3);">部</span>'
+      +'<span style="font-size:10px;color:var(--yellow);font-family:\'Space Mono\';" id="uc-'+p.id+'-'+ed.id+'">¥'+Math.round(edUC).toLocaleString()+'/部(計算)</span>'
+      +'<input type="number" min="0" step="0.01" placeholder="設定原価/部" value="'+(ed.unitCostOvr!==undefined&&ed.unitCostOvr!==''?ed.unitCostOvr:'')+'" style="width:72px;font-size:10px;padding:3px 5px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--yellow);text-align:right;" onchange="updEdUnitCostOvr(\''+p.id+'\',\''+ed.id+'\',this.value)" onclick="event.stopPropagation();this.select()" title="原価(設定)/部 — 空欄で計算値を使用">'
       +'<button class="btn bg" style="padding:6px 10px;font-size:11px;" onclick="event.stopPropagation();togAcc(\''+cAccId+'\')">💰 原価</button>'
       +'<button class="erdel" onclick="event.stopPropagation();delEdSafe(\''+p.id+'\',\''+ed.id+'\')">✕</button>'
       +'</div>'
@@ -770,10 +927,11 @@ function renderPMRow(p){
     +'<div class="pmfi"><div class="pmfl">イベント価格</div><div class="pmfv"><span>¥</span><input class="pminp ac" type="number" min="0" value="'+p.price+'" onchange="updProdNum(\''+p.id+'\',\'price\',this.value)" onclick="this.select()"></div></div>'
     +'<div class="pmfi"><div class="pmfl">書店価格</div><div class="pmfv"><span>¥</span><input class="pminp cy" type="number" min="0" value="'+p.shopPrice+'" onchange="updProdNum(\''+p.id+'\',\'shopPrice\',this.value)" onclick="this.select()"></div></div>'
     +'<div class="pmfi"><div class="pmfl">在庫</div><div class="pmfv"><input class="pminp yw" type="number" min="0" value="'+p.stock+'" onchange="updProdNum(\''+p.id+'\',\'stock\',this.value)" onclick="this.select()"><span>部</span></div></div>'
+    +'<div class="pmfi" style="grid-column:1/-1;"><div class="pmfl">原価/部(計算値)</div><div style="font-size:11px;color:var(--yellow);font-family:\'Space Mono\';">¥'+(Math.round(effUnitCost(p)*100)/100).toLocaleString()+' <span style="font-size:10px;color:var(--text3);">← 設定値は各版の右欄で入力</span></div></div>'
     +'</div>'
     +'<div class="acc">'
     +'<div class="acch" onclick="togAcc(\'acc-ed-'+p.id+'\')">'
-    +'<span class="accl">📚 発行版数 (合計: '+ord+'部 / 原価/部: ¥'+Math.round(uc).toLocaleString()+')</span>'
+    +'<span class="accl" id="ed-hd-'+p.id+'">📚 発行版数　合計: <strong>'+ord+'部</strong>　版数: '+edCount+'版</span>'
     +'<span class="acca '+(openAcc.has('acc-ed-'+p.id)?'open':'')+'" id="aa-acc-ed-'+p.id+'">▼</span>'
     +'</div>'
     +'<div class="accb '+(openAcc.has('acc-ed-'+p.id)?'open':'')+'" id="acc-ed-'+p.id+'">'
@@ -801,6 +959,19 @@ function showDD(inputId){
 function updProdField(pid,field,val){var p=S.p.find(function(x){return x.id===pid;});if(!p)return;if(field==='title'){if(!val.trim())return;p.title=val.trim();}else p[field]=val||'📖';save();}
 function updProdNum(pid,field,val){var p=S.p.find(function(x){return x.id===pid;});if(!p)return;var n=val===''?0:(parseInt(val)||0);p[field]=Math.max(0,n);save();if(field==='stock')setTimeout(function(){renderPM();},100);}
 function updEdLbl(pid,eid,val){var p=S.p.find(function(x){return x.id===pid;});if(!p)return;var e=(p.editions||[]).find(function(e){return e.id===eid;});if(e){e.label=val||e.label;save();}}
+function updUnitCostOvr(pid,val){
+  var p=S.p.find(function(x){return x.id===pid;});if(!p)return;
+  var n=val===''?'':parseFloat(val);
+  p.unitCostOvr=(isNaN(n)||val==='')?'':n;
+  save();
+}
+function updEdUnitCostOvr(pid,eid,val){
+  var p=S.p.find(function(x){return x.id===pid;});if(!p)return;
+  var ed=(p.editions||[]).find(function(e){return e.id===eid;});if(!ed)return;
+  var n=val===''?'':parseFloat(val);
+  ed.unitCostOvr=(isNaN(n)||val==='')?'':n;
+  save();refreshEdUC(pid);
+}
 function updEd(pid,eid,val){var p=S.p.find(function(x){return x.id===pid;});if(!p)return;var e=(p.editions||[]).find(function(e){return e.id===eid;});if(e){e.ordered=Math.max(0,parseInt(val)||0);save();refreshEdUC(pid);}}
 function updCostName(pid,cid,val){var p=S.p.find(function(x){return x.id===pid;});if(!p)return;var c=(p.costs||[]).find(function(c){return c.id===cid;});if(c){c.name=val||c.name;save();}}
 function updCostEdAmt(pid,cid,eid,val){
@@ -818,8 +989,15 @@ function refreshEdUC(pid){
     var edCost=(p.costs||[]).reduce(function(s,c){return s+(c.perEdition&&c.perEdition[ed.id]?c.perEdition[ed.id]:0);},0);
     var edUC=ed.ordered>0?edCost/ed.ordered:0;
     var span=document.getElementById('uc-'+pid+'-'+ed.id);
-    if(span)span.textContent='¥'+Math.round(edUC).toLocaleString()+'/部';
+    if(span)span.textContent='¥'+Math.round(edUC).toLocaleString()+'/部(計算)';
   });
+  // ヘッダーの合計部数・版数をリアルタイム更新
+  var hd=document.getElementById('ed-hd-'+pid);
+  if(hd){
+    var newOrd=totOrd(p);
+    var newEdCount=(p.editions||[]).length;
+    hd.innerHTML='📚 発行版数　合計: <strong>'+newOrd+'部</strong>　版数: '+newEdCount+'版';
+  }
 }
 function delEdSafe(pid,eid){var p=S.p.find(function(x){return x.id===pid;});if(!p)return;p.editions=(p.editions||[]).filter(function(e){return e.id!==eid;});(p.costs||[]).forEach(function(c){if(c.perEdition)delete c.perEdition[eid];});openAcc.add('acc-ed-'+pid);save();renderPM();}
 function delCostSafe(pid,cid){var p=S.p.find(function(x){return x.id===pid;});if(!p)return;p.costs=(p.costs||[]).filter(function(c){return c.id!==cid;});save();renderPM();}
@@ -906,7 +1084,8 @@ function closeImgDrop(){imgPid=null;imgDataUrl=null;document.getElementById('idO
 function renderEV(){
   var el=document.getElementById('evList');
   if(!S.e||!S.e.length){el.innerHTML='<div class="empty"><div class="emico">📅</div><div>イベントがありません</div></div>';return;}
-  el.innerHTML=S.e.map(renderEVRow).join('');
+  var sorted=S.e.slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
+  el.innerHTML=sorted.map(renderEVRow).join('');
 }
 function renderEVRow(ev){
   var evSales=S.s.filter(function(s){return s.eid===ev.id;});
@@ -962,7 +1141,27 @@ function renderEVRow(ev){
     +'<button class="btn bd bsm" style="margin-left:auto;" onclick="delEv(\''+ev.id+'\')">🗑 削除</button>'
     +'</div></div>';
 }
-function togEvProd(eid,pid){var ev=S.e.find(function(x){return x.id===eid;});if(!ev)return;if(!ev.productIds)ev.productIds=[];var i=ev.productIds.indexOf(pid);if(i>=0)ev.productIds.splice(i,1);else ev.productIds.push(pid);save();renderEV();}
+function togEvProd(eid,pid){
+  var ev=S.e.find(function(x){return x.id===eid;});if(!ev)return;
+  if(!ev.productIds)ev.productIds=[];
+  var i=ev.productIds.indexOf(pid);
+  if(i>=0)ev.productIds.splice(i,1);else ev.productIds.push(pid);
+  save();renderEV();
+  // 分析画面が同じイベントを表示中なら即時反映
+  if(eid===S.anEvId){
+    var added=ev.productIds.indexOf(pid)>=0;
+    if(added){
+      // 新規追加 → デフォルトON（choicesに未登録 = ON）
+      delete anProdChoices[pid];
+    } else {
+      // 削除 → choicesからも消す
+      delete anProdChoices[pid];
+    }
+    renderProdCheckboxes();renderChart();
+    // シミュも同じイベントを選択中なら再描画
+    if(eid===S.simEvId)renderSIM();
+  }
+}
 function updExpName(eid,xid,val){var ev=S.e.find(function(x){return x.id===eid;});if(!ev)return;var x=(ev.expenses||[]).find(function(x){return x.id===xid;});if(x){x.name=val||x.name;save();}}
 function updExpAmt(eid,xid,val){var ev=S.e.find(function(x){return x.id===eid;});if(!ev)return;var x=(ev.expenses||[]).find(function(x){return x.id===xid;});if(x){x.amount=Math.max(0,parseInt(val)||0);save();}}
 function addExp(eid){var ev=S.e.find(function(x){return x.id===eid;});if(!ev)return;var name=(document.getElementById('en-'+eid)||{}).value;name=name?name.trim():'';var amount=Math.max(0,parseInt((document.getElementById('ea-'+eid)||{}).value)||0);if(!name){showToast('経費名を入力してください');return;}if(!ev.expenses)ev.expenses=[];ev.expenses.push({id:uid(),name:name,amount:amount});openAcc.add('acc-exp-'+eid);save();renderEV();}
@@ -995,7 +1194,7 @@ function setAnMode(m){
     var btn=document.getElementById('anM_'+k);
     if(btn)btn.classList.toggle('active',k===m);
   });
-  renderStats();
+  renderStats();renderChart();
 }
 function renderAN(){
   if(!S.anMode)S.anMode='cost';
@@ -1003,28 +1202,56 @@ function renderAN(){
     var btn=document.getElementById('anM_'+k);
     if(btn)btn.classList.toggle('active',k===S.anMode);
   });
-  if(!S.yAxisSet)S.yAxisSet=new Set(['count']);
-  ['count','cumMoney','cumCount','cumTotalMoney'].forEach(function(k){
-    var btn=document.getElementById('y'+k.charAt(0).toUpperCase()+k.slice(1));
-    if(btn)btn.classList.toggle('active',S.yAxisSet.has(k));
-  });
+  if(!S.countSet)S.countSet=new Set(['count']);
+  if(!S.moneySet)S.moneySet=new Set(['cumTotalMoney']);
+  ['count','cumCount'].forEach(function(k){var btn=document.getElementById('y'+k.charAt(0).toUpperCase()+k.slice(1));if(btn)btn.classList.toggle('active',S.countSet.has(k));});
+  ['money','cumMoney','cumTotalMoney'].forEach(function(k){var id=k==='money'?'yMoney':k==='cumMoney'?'yCumMoney':'yCumTotalMoney';var btn=document.getElementById(id);if(btn)btn.classList.toggle('active',S.moneySet.has(k));});
   renderAnEvSel();renderProdCheckboxes();renderStats();renderChart();renderShare();renderHist();
 }
+function togCA(m){
+  if(!S.countSet)S.countSet=new Set(['count']);
+  if(S.countSet.has(m))S.countSet.delete(m);else S.countSet.add(m);
+  if(S.countSet.size===0)S.countSet.add(m);
+  ['count','cumCount'].forEach(function(k){var btn=document.getElementById('y'+k.charAt(0).toUpperCase()+k.slice(1));if(btn)btn.classList.toggle('active',S.countSet.has(k));});
+  renderCountChart();
+}
+function togMA(m){
+  if(!S.moneySet)S.moneySet=new Set(['cumTotalMoney']);
+  if(S.moneySet.has(m))S.moneySet.delete(m);else S.moneySet.add(m);
+  if(S.moneySet.size===0)S.moneySet.add(m);
+  ['money','cumMoney','cumTotalMoney'].forEach(function(k){var id=k==='money'?'yMoney':k==='cumMoney'?'yCumMoney':'yCumTotalMoney';var btn=document.getElementById(id);if(btn)btn.classList.toggle('active',S.moneySet.has(k));});
+  renderMoneyChart();
+}
+// 後方互換性のため togYA は残す
+function togYA(m){if(['count','cumCount'].indexOf(m)>=0)togCA(m);else togMA(m);}
 function renderAnEvSel(){
   var el=document.getElementById('anEvSel');
   if(!S.anEvId&&S.e.length)S.anEvId=S.e[0].id;
   el.innerHTML=(S.e||[]).map(function(e){return '<div class="echip '+(e.id===S.anEvId?'active':'')+'" onclick="selAnEv(\''+e.id+'\')">'+e.name+'</div>';}).join('');
 }
-function selAnEv(id){S.anEvId=id;anProdFilter=null;renderProdCheckboxes();renderStats();renderChart();renderShare();renderHist();}
+function selAnEv(id){S.anEvId=id;renderAnEvSel();renderProdCheckboxes();renderStats();renderChart();renderShare();renderHist();}
 function fSales(){return(S.s||[]).filter(function(s){return s.eid===S.anEvId;});}
-function fSalesFiltered(){var all=fSales();if(!anProdFilter)return all;return all.filter(function(s){return anProdFilter.has(s.pid);});}
+function fSalesFiltered(){
+  var all=fSales();
+  var ev=S.e.find(function(e){return e.id===S.anEvId;});
+  var evPids=(ev&&ev.productIds&&ev.productIds.length)?ev.productIds:[];
+  if(!evPids.length)return all;
+  // anProdChoices で明示的にfalseにされていないものはON（未登録=ONとみなす）
+  return all.filter(function(s){return anProdChoices[s.pid]!==false;});
+}
 function renderProdCheckboxes(){
   var el=document.getElementById('prodChecks');
-  var sales=fSales();var pids=[...new Set(sales.map(function(s){return s.pid;}))];
-  if(!pids.length){el.innerHTML='';return;}
-  if(!anProdFilter)anProdFilter=new Set(pids);
-  el.innerHTML=pids.map(function(pid,i){
-    var p=S.p.find(function(x){return x.id===pid;}),on=anProdFilter.has(pid),col=pCol(i);
+  var ev=S.e.find(function(e){return e.id===S.anEvId;});
+  var evPids=(ev&&ev.productIds&&ev.productIds.length)?ev.productIds:[];
+  if(!evPids.length){
+    el.innerHTML='<div style="font-size:11px;color:var(--text3);">イベント管理で商品を選択してください</div>';
+    return;
+  }
+  var sales=fSales();
+  // anProdChoices に未登録のpidはデフォルトON
+  el.innerHTML=evPids.map(function(pid,i){
+    var p=S.p.find(function(x){return x.id===pid;}),col=pCol(i);
+    var on=anProdChoices[pid]!==false;
     var amt=sales.filter(function(s){return s.pid===pid;}).reduce(function(s,x){return s+x.price*x.qty;},0);
     return '<div class="pchk '+(on?'on':'')+'" onclick="togProdFilter(\''+pid+'\')" style="'+(on?'border-color:'+col+';background:'+col+'22;':'')+'">'
       +'<div class="pchk-dot" style="background:'+col+';'+(on?'':'opacity:.4')+'"></div>'
@@ -1033,57 +1260,260 @@ function renderProdCheckboxes(){
       +'</div>';
   }).join('');
 }
-function togProdFilter(pid){if(!anProdFilter)anProdFilter=new Set(fSales().map(function(s){return s.pid;}));if(anProdFilter.has(pid))anProdFilter.delete(pid);else anProdFilter.add(pid);renderProdCheckboxes();renderChart();renderHist();}
+function togProdFilter(pid){
+  // 現在ONなら明示OFFに、OFFなら明示ONに
+  anProdChoices[pid]=anProdChoices[pid]===false?true:false;
+  renderProdCheckboxes();renderStats();renderChart();renderHist();
+}
 function renderStats(){
-  var sales=fSales();
+  // 選択商品（anProdFilter）に絞った売上を集計
+  var sales=fSalesFiltered();
   var rev=sales.reduce(function(s,x){return s+x.price*x.qty;},0);
   var qty=sales.reduce(function(s,x){return s+x.qty;},0);
-  var cu=0;sales.forEach(function(s){var p=S.p.find(function(x){return x.id===s.pid;});if(p)cu+=unitCost(p)*s.qty;});
+  var cu=0;sales.forEach(function(s){var p=S.p.find(function(x){return x.id===s.pid;});if(p)cu+=effUnitCost(p)*s.qty;});
   var ev=S.e.find(function(e){return e.id===S.anEvId;});
-  var exp=(ev&&ev.expenses||[]).reduce(function(s,e){return s+e.amount;},0);
+  // 経費は選択商品の割合で按分
+  var allSales=fSales();var allRev=allSales.reduce(function(s,x){return s+x.price*x.qty;},0);
+  var expFull=(ev&&ev.expenses||[]).reduce(function(s,e){return s+e.amount;},0);
+  var expPro=allRev>0?expFull*(rev/allRev):expFull;
   var mode=S.anMode||'cost';
-  var cost=mode==='sales'?0:mode==='full'?cu+exp:cu;
+  var cost=mode==='sales'?0:mode==='full'?cu+expPro:cu;
   var profit=rev-cost;
   var modeLabel=mode==='cost'?'利益(原価差引)':mode==='full'?'利益(原価+経費)':'売上のみ';
   var costLabel=mode==='cost'?'原価合計':mode==='full'?'原価+経費合計':'−';
   var costDisp=mode==='sales'?'−':'¥'+Math.round(cost).toLocaleString();
   document.getElementById('statsGrid').innerHTML=
     '<div class="stc"><div class="slb">総売上</div><div class="sv g">¥'+rev.toLocaleString()+'</div></div>'
-    +'<div class="stc"><div class="slb">'+modeLabel+'</div><div class="sv '+(profit>=0?'c':'pk')+'">¥'+Math.round(profit).toLocaleString()+'</div></div>'
-    +'<div class="stc"><div class="slb">総頒布数</div><div class="sv y">'+qty+'部</div></div>'
-    +'<div class="stc"><div class="slb">'+costLabel+'</div><div class="sv">'+costDisp+'</div></div>';
+    +'<div class="stc"><div class="slb">'+modeLabel+'</div><div class="sv '+(profit>=0?'or':'pk')+'">¥'+Math.round(profit).toLocaleString()+'</div></div>'
+    +(mode!=='sales'?'<div class="stc"><div class="slb">'+costLabel+'</div><div class="sv">'+costDisp+'</div></div>':'')
+    +'<div class="stc"><div class="slb">頒布数</div><div class="sv y">'+qty+'部</div></div>';
 }
-function togYA(m){
-  if(!S.yAxisSet)S.yAxisSet=new Set(['count']);
-  if(S.yAxisSet.has(m))S.yAxisSet.delete(m);else S.yAxisSet.add(m);
-  if(S.yAxisSet.size===0)S.yAxisSet.add(m);
-  ['count','cumMoney','cumCount','cumTotalMoney'].forEach(function(k){
-    var btn=document.getElementById('y'+k.charAt(0).toUpperCase()+k.slice(1));
-    if(btn)btn.classList.toggle('active',S.yAxisSet.has(k));
+function renderChart(){renderCountChart();renderMoneyChart();}
+
+// ---- 共通データ準備 ----
+function prepChartData(){
+  var allSales=fSales();
+  var sh=parseInt((document.getElementById('xS')||{value:10}).value)||10;
+  var eh=parseInt((document.getElementById('xE')||{value:16}).value)||16;
+  var hrs=[];for(var h=sh;h<=eh;h++)hrs.push(h);
+  var allPids=[...new Set(allSales.map(function(s){return s.pid;}))];
+  var visPids=allPids.filter(function(pid){return anProdChoices[pid]!==false;});
+  var byPH={};
+  visPids.forEach(function(pid){byPH[pid]={};hrs.forEach(function(h){byPH[pid][h]={m:0,c:0};});});
+  allSales.filter(function(s){return visPids.includes(s.pid);}).forEach(function(s){
+    var hh=new Date(s.ts).getHours();
+    if(byPH[s.pid]&&byPH[s.pid][hh]!==undefined){byPH[s.pid][hh].m+=s.price*s.qty;byPH[s.pid][hh].c+=s.qty;}
   });
-  renderChart();
+  var totByH={};hrs.forEach(function(h){totByH[h]={m:0,c:0};});
+  visPids.forEach(function(pid){hrs.forEach(function(h){totByH[h].m+=byPH[pid][h].m;totByH[h].c+=byPH[pid][h].c;});});
+  return{allSales:allSales,hrs:hrs,allPids:allPids,visPids:visPids,byPH:byPH,totByH:totByH};
+}
+
+// ---- 部数グラフ ----
+function renderCountChart(){
+  var el=document.getElementById('countCh');if(!el)return;
+  if(!S.countSet||S.countSet.size===0)S.countSet=new Set(['count']);
+  var d=prepChartData();
+  var hrs=d.hrs,allPids=d.allPids,visPids=d.visPids,byPH=d.byPH;
+  if(!visPids.length){el.innerHTML='<div style="font-size:11px;color:var(--text3);padding:14px 0;text-align:center;">データなし</div>';el.style.height='';return;}
+  var hasCount=S.countSet.has('count'),hasCumCount=S.countSet.has('cumCount');
+  // 帯別最大（1商品×1時間）
+  var mxBar=Math.max.apply(null,
+    hrs.map(function(h){return Math.max.apply(null,visPids.map(function(pid){return byPH[pid][h].c;}));}).concat([1])
+  );
+  // 累計最大（各商品の全時間合計）
+  var mxCum=0;
+  visPids.forEach(function(pid){var rc=0;hrs.forEach(function(h){rc+=byPH[pid][h].c;});if(rc>mxCum)mxCum=rc;});
+  // 帯別・累計を同じスケールに統一（単位が同じため）
+  var unified=niceMax(Math.max(hasCount?mxBar:0, hasCumCount?mxCum:0, 1));
+
+  // コンテナ幅からグラフサイズを動的計算
+  var container=el.parentElement||el;
+  var contW=container.offsetWidth||300;
+  var W=Math.max(260,Math.round(contW*0.96));
+  var H=Math.max(180,Math.round(W*0.62));
+  var pL=32,pR=W-10,pT=14,pB=H-20,gW=pR-pL,gH=pB-pT;
+  var nH=hrs.length,slotW=nH>1?gW/nH:gW;
+  function bx(i){return pL+i*slotW+slotW/2;}
+  function gy(v){return pT+gH-(v/unified)*gH;}
+  var inner='';
+  inner+=svgL(pL,pT,pL,pB,'var(--border)',1);
+  inner+=svgL(pL,pB,pR,pB,'var(--border)',1);
+  inner+=hrs.map(function(h,i){return svgT(bx(i),pB+11,h+'h',7,'var(--text3)','middle');}).join('');
+  // 軸目盛り（統一スケール）
+  [0,.25,.5,.75,1].forEach(function(r){
+    var y=pT+gH*(1-r);var lbl=r===0?'0':Math.round(r*unified);
+    inner+=svgL(pL,y,pR,y,'var(--border)',.4);
+    inner+=svgT(pL-3,y+3,lbl,7,'var(--text3)','end');
+  });
+  // 棒グラフ（横並び）
+  if(hasCount){
+    var nPids=visPids.length,groupW=slotW*0.78;
+    var barW=nPids>1?(groupW-(nPids-1)*1.5)/nPids:groupW*0.6;barW=Math.max(barW,2);
+    hrs.forEach(function(h,hi){
+      visPids.forEach(function(pid,pi){
+        var v=byPH[pid][h].c;if(!v)return;
+        var bh=(v/unified)*gH,col=pCol(allPids.indexOf(pid));
+        var sx=bx(hi)-groupW/2+pi*(barW+1.5);
+        inner+=svgR(sx,pB-bh,barW,bh,col,.82,1);
+        if(bh>10)inner+=svgT(sx+barW/2,pB-bh/2,v,6,'#fff','middle');
+        else if(bh>5)inner+=svgT(sx+barW/2,pB-bh-3,v,6,col,'middle');
+      });
+    });
+  }
+  // 累計折れ線（同じ unified スケール）
+  if(hasCumCount){
+    visPids.forEach(function(pid){
+      var col=pCol(allPids.indexOf(pid)),run=0;
+      var dd=hrs.map(function(h,i){run+=byPH[pid][h].c;return(i===0?'M':'L')+bx(i)+','+gy(run);}).join(' ');
+      inner+=svgP(dd,col,hasCount?1.5:2);
+      run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].c;inner+=svgC(bx(i),gy(run),2.5,col);});
+    });
+  }
+  // 凡例
+  var LEG_H=Math.ceil(visPids.length/3)*12+6;
+  var legSvg='',legY=H+2;
+  visPids.forEach(function(pid,li){
+    var col=pCol(allPids.indexOf(pid)),p=S.p.find(function(x){return x.id===pid;});
+    var lbl=p?(p.emoji||'')+(p.title||'?').substr(0,5):'?';
+    var lx=pL+(li%3)*(gW/3),ly=legY+Math.floor(li/3)*12;
+    legSvg+=svgR(lx,ly+1,7,7,col,1,2)+svgT(lx+9,ly+8,lbl,8,col,'start');
+  });
+  var totalH=H+LEG_H;
+  el.style.height=totalH+'px';
+  el.innerHTML='<svg viewBox="0 0 '+W+' '+totalH+'" style="width:100%;height:100%;">'+inner+legSvg+'</svg>';
+}
+
+// ---- 金額グラフ ----
+function renderMoneyChart(){
+  var el=document.getElementById('moneyCh');if(!el)return;
+  if(!S.moneySet||S.moneySet.size===0)S.moneySet=new Set(['cumTotalMoney']);
+  var d=prepChartData();
+  var hrs=d.hrs,allPids=d.allPids,visPids=d.visPids,byPH=d.byPH,totByH=d.totByH;
+  if(!visPids.length){el.innerHTML='<div style="font-size:11px;color:var(--text3);padding:14px 0;text-align:center;">データなし</div>';el.style.height='';return;}
+  var hasMoney=S.moneySet.has('money'),hasCumMoney=S.moneySet.has('cumMoney'),hasCumTotalMoney=S.moneySet.has('cumTotalMoney');
+  // 各モードのデータ最大値（breakeven は含めない）
+  var mxBar=Math.max.apply(null,
+    hrs.map(function(h){return Math.max.apply(null,visPids.map(function(pid){return byPH[pid][h].m;}));}).concat([1])
+  );
+  var mxCum=0;
+  visPids.forEach(function(pid){var rm=0;hrs.forEach(function(h){rm+=byPH[pid][h].m;});if(rm>mxCum)mxCum=rm;});
+  var mxTotal=hrs.reduce(function(s,h){return s+totByH[h].m;},0);
+  // 表示中のモードの最大値だけで統一スケールを決定
+  var dataMax=0;
+  if(hasMoney)dataMax=Math.max(dataMax,mxBar);
+  if(hasCumMoney)dataMax=Math.max(dataMax,mxCum);
+  if(hasCumTotalMoney)dataMax=Math.max(dataMax,mxTotal);
+  // 損益分岐線は合計モード選択時のみ描画 → その場合のみスケールに含める
+  var beLine=S.anMode!=='sales'?calcAnBreakeven(visPids,S.anEvId,S.anMode):0;
+  var scaleMax=hasCumTotalMoney?Math.max(dataMax,beLine,1):Math.max(dataMax,1);
+  var unified=niceMax(scaleMax);
+
+  var container=el.parentElement||el;
+  var contW=container.offsetWidth||300;
+  var W=Math.max(260,Math.round(contW*0.96));
+  var H=Math.max(180,Math.round(W*0.62));
+  var pL=34,pR=W-10,pT=14,pB=H-20,gW=pR-pL,gH=pB-pT;
+  var nH=hrs.length,slotW=nH>1?gW/nH:gW;
+  function bx(i){return pL+i*slotW+slotW/2;}
+  function gy(v){return pT+gH-(v/unified)*gH;}
+  var inner='';
+  inner+=svgL(pL,pT,pL,pB,'var(--border)',1);
+  inner+=svgL(pL,pB,pR,pB,'var(--border)',1);
+  inner+=hrs.map(function(h,i){return svgT(bx(i),pB+11,h+'h',7,'var(--text3)','middle');}).join('');
+  [0,.25,.5,.75,1].forEach(function(r){
+    var y=pT+gH*(1-r);
+    var v=r*unified;var lbl=r===0?'0':v>=10000?Math.round(v/1000)+'k':Math.round(v);
+    inner+=svgL(pL,y,pR,y,'var(--border)',.4);
+    inner+=svgT(pL-3,y+3,lbl,7,'var(--text3)','end');
+  });
+  // 時間帯別金額（横並び棒グラフ）
+  if(hasMoney){
+    var nPids=visPids.length,groupW=slotW*0.8;
+    var barW=nPids>1?(groupW-(nPids-1)*1)/nPids:groupW*0.6;barW=Math.max(barW,2);
+    hrs.forEach(function(h,hi){
+      visPids.forEach(function(pid,pi){
+        var v=byPH[pid][h].m;if(!v)return;
+        var bh=(v/unified)*gH,col=pCol(allPids.indexOf(pid));
+        var sx=bx(hi)-groupW/2+pi*(barW+1);
+        inner+=svgR(sx,pB-bh,barW,bh,col,.82,1);
+        if(bh>9){var lbl=v>=10000?Math.round(v/1000)+'k':''+v;inner+=svgT(sx+barW/2,pB-bh/2,lbl,6,'#fff','middle');}
+      });
+    });
+  }
+  // 累計金額（商品別折れ線）— 統一スケール
+  if(hasCumMoney){
+    visPids.forEach(function(pid){
+      var col=pCol(allPids.indexOf(pid)),run=0;
+      var dd=hrs.map(function(h,i){run+=byPH[pid][h].m;return(i===0?'M':'L')+bx(i)+','+gy(run);}).join(' ');
+      inner+=svgP(dd,col,2,'6,2');
+      run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].m;inner+=svgC(bx(i),gy(run),3,col);});
+    });
+  }
+  // 累計売上合計（ダーク: 白実線 / ライト: 黒実線）— 統一スケール
+  var isLight=document.body.classList.contains('light');
+  var totLineCol=isLight?'#222222':'#ffffff';
+  var beLineCol=isLight?'#000000':'#ffffff';
+  if(hasCumTotalMoney){
+    var runT=0;
+    var dT=hrs.map(function(h,i){runT+=totByH[h].m;return(i===0?'M':'L')+bx(i)+','+gy(runT);}).join(' ');
+    inner+=svgP(dT,totLineCol,2);
+    runT=0;
+    hrs.forEach(function(h,i){
+      runT+=totByH[h].m;
+      var cy2=gy(runT);
+      inner+=svgC(bx(i),cy2,3,totLineCol);
+      if(runT>0){var lbl=runT>=10000?Math.round(runT/1000)+'k':''+runT;inner+=svgT(bx(i),cy2-5,lbl,7,totLineCol,'middle');}
+    });
+    // 損益分岐線（常にスケール内）
+    if(beLine>0){
+      var beY=gy(beLine);
+      var beK=beLine>=1000?Math.round(beLine/1000)+'k':''+beLine;
+      inner+=svgL(pL,beY,pR,beY,beLineCol,1.5,'4,3');
+      inner+=svgT(pR-2,beY-3,'¥'+beK,7,beLineCol,'end');
+      inner+=svgT(pL+2,beY-3,'損益分岐',7,beLineCol,'start');
+    }
+  }
+  // 凡例
+  var LEG_H=Math.ceil(visPids.length/3)*12+6;
+  var hasTotalLine=hasCumTotalMoney;
+  if(hasTotalLine)LEG_H+=12;
+  var legSvg='',legY=H+2;
+  visPids.forEach(function(pid,li){
+    var col=pCol(allPids.indexOf(pid)),p=S.p.find(function(x){return x.id===pid;});
+    var lbl=p?(p.emoji||'')+(p.title||'?').substr(0,5):'?';
+    var lx=pL+(li%3)*(gW/3),ly=legY+Math.floor(li/3)*12;
+    legSvg+=svgR(lx,ly+1,7,7,col,1,2)+svgT(lx+9,ly+8,lbl,8,col,'start');
+  });
+  if(hasTotalLine){
+    var ey=legY+Math.ceil(visPids.length/3)*12+1;
+    legSvg+='<rect x="'+pL+'" y="'+(ey+2)+'" width="14" height="3" fill="'+totLineCol+'" rx="1"/>';
+    legSvg+=svgT(pL+18,ey+8,'累計合計',8,totLineCol,'start');
+    if(beLine>0){
+      var mode2=S.anMode||'cost';
+      var beLbl2=mode2==='full'?'損益分岐(原価+経費)':'損益分岐(原価のみ)';
+      legSvg+='<line x1="'+(pL+70)+'" y1="'+(ey+4)+'" x2="'+(pL+84)+'" y2="'+(ey+4)+'" stroke="'+beLineCol+'" stroke-width="1.5" stroke-dasharray="4,2"/>';
+      legSvg+=svgT(pL+88,ey+8,beLbl2,8,beLineCol,'start');
+    }
+  }
+  var totalH=H+LEG_H;
+  el.style.height=totalH+'px';
+  el.innerHTML='<svg viewBox="0 0 '+W+' '+totalH+'" style="width:100%;height:100%;">'+inner+legSvg+'</svg>';
+  renderSoldoutTimeline(hrs,allPids,d.allSales);
 }
 // 版ごとの過去回収済み原価を差し引いた実効原価
 function effectiveCostForEvent(pid,currentEventId){
   var p=S.p.find(function(x){return x.id===pid;});
   if(!p)return 0;
+  // 総原価: 設定値があれば設定値×総印刷数、なければ版ごとの実費合計
+  var totalCost=effUnitCost(p)*totOrd(p)||totCost(p);
   var currentEv=S.e.find(function(e){return e.id===currentEventId;});
-  if(!currentEv)return totCost(p);
+  if(!currentEv)return Math.round(totalCost);
   var currentDate=currentEv.date;
   var pastEids=S.e.filter(function(e){return e.date<currentDate;}).map(function(e){return e.id;});
-  var pastQty=(S.s||[]).filter(function(s){return s.pid===pid&&pastEids.indexOf(s.eid)>=0;}).reduce(function(s,x){return s+x.qty;},0);
-  if(pastQty<=0)return totCost(p);
-  var remaining=pastQty,effectiveCost=0;
-  var eds=p.editions||[];
-  for(var j=0;j<eds.length;j++){
-    var ed=eds[j];
-    var edC=(p.costs||[]).reduce(function(s,c){return s+(c.perEdition&&c.perEdition[ed.id]?c.perEdition[ed.id]:0);},0);
-    var edO=ed.ordered||0;
-    if(edO<=0){effectiveCost+=edC;continue;}
-    if(remaining>=edO){remaining-=edO;}
-    else{effectiveCost+=edC-remaining*(edC/edO);remaining=0;}
-  }
-  return Math.max(0,Math.round(effectiveCost));
+  // 過去イベントの収益（イベント価格×頒布数）を原価から差し引く
+  var pastRevenue=(S.s||[]).filter(function(s){return s.pid===pid&&pastEids.indexOf(s.eid)>=0;}).reduce(function(sum,s){return sum+s.price*s.qty;},0);
+  return Math.max(0,Math.round(totalCost-pastRevenue));
 }
 function calcAnBreakeven(visPids,anEvId,mode){
   if(mode==='sales')return 0;
@@ -1096,158 +1526,22 @@ function svgT(x,y,txt,size,fill,anchor){return '<text x="'+x+'" y="'+y+'" font-s
 function svgR(x,y,w,h,fill,op,rx){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+fill+'" opacity="'+(op||1)+'" rx="'+(rx||0)+'"/>'}
 function svgC(cx,cy,r,fill){return '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+fill+'"/>'}
 function svgP(d,stroke,sw,dash){return '<path d="'+d+'" fill="none" stroke="'+stroke+'" stroke-width="'+(sw||2)+'" stroke-linejoin="round"'+(dash?' stroke-dasharray="'+dash+'"':'')+'/>';}
-function renderChart(){
-  var el=document.getElementById('salesCh');if(!el)return;
-  if(!S.yAxisSet||S.yAxisSet.size===0)S.yAxisSet=new Set(['count']);
-  var allSales=fSales();
-  var sh=parseInt((document.getElementById('xS')||{value:10}).value)||10;
-  var eh=parseInt((document.getElementById('xE')||{value:16}).value)||16;
-  var hrs=[];for(var h=sh;h<=eh;h++)hrs.push(h);
-  var allPids=[...new Set(allSales.map(function(s){return s.pid;}))];
-  var visPids=allPids.filter(function(pid){return !anProdFilter||anProdFilter.has(pid);});
-  if(!visPids.length){el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:18px;text-align:center;">表示する商品を選択してください</div>';el.style.height='';renderSoldoutTimeline(hrs,allPids,allSales);return;}
-
-  var byPH={};
-  visPids.forEach(function(pid){byPH[pid]={};hrs.forEach(function(h){byPH[pid][h]={m:0,c:0};});});
-  allSales.filter(function(s){return visPids.includes(s.pid);}).forEach(function(s){
-    var hh=new Date(s.ts).getHours();
-    if(byPH[s.pid]&&byPH[s.pid][hh]!==undefined){byPH[s.pid][hh].m+=s.price*s.qty;byPH[s.pid][hh].c+=s.qty;}
-  });
-  var totByH={};hrs.forEach(function(h){totByH[h]={m:0,c:0};});
-  visPids.forEach(function(pid){hrs.forEach(function(h){totByH[h].m+=byPH[pid][h].m;totByH[h].c+=byPH[pid][h].c;});});
-
-  var modes=[...S.yAxisSet];
-  var hasCount=modes.indexOf('count')>=0;
-  var hasCumMoney=modes.indexOf('cumMoney')>=0;
-  var hasCumCount=modes.indexOf('cumCount')>=0;
-  var hasCumTotalMoney=modes.indexOf('cumTotalMoney')>=0;
-
-  var mxC=Math.max.apply(null,hrs.map(function(h){return totByH[h].c;}).concat([1]));
-  var cumMaxM=0,cumMaxC=0;
-  visPids.forEach(function(pid){var rm=0,rc=0;hrs.forEach(function(h){rm+=byPH[pid][h].m;rc+=byPH[pid][h].c;});if(rm>cumMaxM)cumMaxM=rm;if(rc>cumMaxC)cumMaxC=rc;});
-  var cumTotalMaxM=hrs.reduce(function(s,h){return s+totByH[h].m;},0);
-  cumMaxM=Math.max(cumMaxM,1);cumMaxC=Math.max(cumMaxC,1);cumTotalMaxM=Math.max(cumTotalMaxM,1);
-
-  var beLine=hasCumTotalMoney&&S.anMode!=='sales'?calcAnBreakeven(visPids,S.anEvId,S.anMode):0;
-  if(beLine>cumTotalMaxM)cumTotalMaxM=Math.round(beLine*1.15);
-
-  var LEG_H=visPids.length>0?Math.ceil(visPids.length/3)*14+10:0;
-  var LEG_H2=hasCumTotalMoney?18:0;
-  var W=320,H=200,pL=44,pR=W-10,pT=14,pB=H-20,gW=pR-pL,gH=pB-pT;
-  var nH=hrs.length,slotW=nH>1?gW/nH:gW;
-  function bx(i){return pL+i*slotW+slotW/2;}
-  function gy(v,mx){return pT+gH-(v/mx)*gH;}
-
-  var inner='';
-  inner+=svgL(pL,pT,pL,pB,'var(--border)',1);
-  inner+=svgL(pL,pB,pR,pB,'var(--border)',1);
-  inner+=hrs.map(function(h,i){return svgT(bx(i),pB+12,h+'時',8,'var(--text3)','middle');}).join('');
-
-  // 左軸
-  var leftMx=hasCount?mxC:hasCumCount?cumMaxC:hasCumMoney?cumMaxM:hasCumTotalMoney?cumTotalMaxM:1;
-  var leftIsK=!hasCount&&!hasCumCount&&(hasCumMoney||hasCumTotalMoney);
-  [0,.25,.5,.75,1].forEach(function(r){
-    var y=pT+gH*(1-r);
-    var lbl=r===0?'0':(leftIsK?Math.round(r*leftMx/1000)+'k':Math.round(r*leftMx));
-    inner+=svgL(pL,y,pR,y,'var(--border)',.4);
-    inner+=svgT(pL-4,y+3,lbl,8,'var(--text3)','end');
-  });
-  if(hasCumMoney&&(hasCount||hasCumCount)){
-    [0,.25,.5,.75,1].forEach(function(r){var y=pT+gH*(1-r);inner+=svgT(pR+4,y+3,r===0?'0':Math.round(r*cumMaxM/1000)+'k',7,'var(--text2)','start');});
+function niceMax(v){
+  if(v<=0)return 1;
+  var mag=Math.pow(10,Math.floor(Math.log10(v)));
+  var steps=[1,2,2.5,5,10];
+  // 1.05マージンで全ステップ不合格なら、次のマグニチュードで再試行
+  for(var pass=0;pass<2;pass++){
+    for(var i=0;i<steps.length;i++){var c=steps[i]*mag;if(c>=v*1.02)return c;}
+    mag*=10;
   }
-
-  // 棒グラフ
-  if(hasCount){
-    hrs.forEach(function(h,hi){
-      var stackY=pB;
-      visPids.forEach(function(pid){
-        var v=byPH[pid][h].c;if(!v)return;
-        var bh=(v/mxC)*gH,col=pCol(allPids.indexOf(pid)),bw=slotW*0.65;
-        inner+=svgR(bx(hi)-bw/2,stackY-bh,bw,bh,col,.75,1);
-        if(bh>9)inner+=svgT(bx(hi),stackY-bh/2,v,7,'#fff','middle');
-        stackY-=bh;
-      });
-    });
-  }
-
-  // 累計金額（商品別）
-  if(hasCumMoney){
-    var gyM=function(v){return(hasCount||hasCumCount)?pT+gH-(v/cumMaxM)*gH:gy(v,cumMaxM);};
-    visPids.forEach(function(pid){
-      var col=pCol(allPids.indexOf(pid)),run=0;
-      var d=hrs.map(function(h,i){run+=byPH[pid][h].m;return(i===0?'M':'L')+bx(i)+','+gyM(run);}).join(' ');
-      inner+=svgP(d,col,2,'6,2');
-      run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].m;inner+=svgC(bx(i),gyM(run),3,col);});
-    });
-  }
-
-  // 累計部数
-  if(hasCumCount){
-    visPids.forEach(function(pid){
-      var col=pCol(allPids.indexOf(pid)),run=0;
-      var d=hrs.map(function(h,i){run+=byPH[pid][h].c;return(i===0?'M':'L')+bx(i)+','+gy(run,cumMaxC);}).join(' ');
-      inner+=svgP(d,col,hasCount?1.5:2);
-      run=0;hrs.forEach(function(h,i){run+=byPH[pid][h].c;inner+=svgC(bx(i),gy(run,cumMaxC),2.5,col);});
-    });
-  }
-
-  // 累計売上金額（全商品合計・白実線）
-  if(hasCumTotalMoney){
-    var gyT=function(v){return gy(v,cumTotalMaxM);};
-    var runT=0;
-    var dT=hrs.map(function(h,i){runT+=totByH[h].m;return(i===0?'M':'L')+bx(i)+','+gyT(runT);}).join(' ');
-    inner+=svgP(dT,'#ffffff',2.5);
-    runT=0;
-    hrs.forEach(function(h,i){
-      runT+=totByH[h].m;
-      inner+=svgC(bx(i),gyT(runT),3.5,'#ffffff');
-      if(runT>0){
-        var lbl=runT>=10000?Math.round(runT/1000)+'k':runT>=1000?Math.round(runT/1000)+'k':''+runT;
-        inner+=svgT(bx(i),gyT(runT)-6,lbl,8,'#ffffff','middle');
-      }
-    });
-    // 損益分岐水平線
-    if(beLine>0){
-      var beY=gyT(beLine);
-      inner+=svgL(pL,beY,pR,beY,'var(--yellow)',1.5,'4,3');
-      var beK=beLine>=1000?Math.round(beLine/1000)+'k':''+beLine;
-      inner+=svgT(pR-2,beY-3,'¥'+beK,8,'var(--yellow)','end');
-      inner+=svgT(pL+2,beY-3,'損益分岐',8,'var(--yellow)','start');
-    }
-  }
-
-  // 凡例
-  var legSvg='',cols=3,legRowH=13,legX=pL,legY=H+6;
-  visPids.forEach(function(pid,li){
-    var col=pCol(allPids.indexOf(pid));
-    var p=S.p.find(function(x){return x.id===pid;});
-    var lbl=p?(p.emoji||'')+(p.title||'?').substr(0,5):'?';
-    var row=Math.floor(li/cols),col2=li%cols;
-    var lx=legX+col2*(gW/cols),ly=legY+row*legRowH;
-    legSvg+=svgR(lx,ly+1,8,8,col,1,2)+svgT(lx+10,ly+8,lbl,9,col,'start');
-  });
-  if(hasCumTotalMoney){
-    var extraY=legY+Math.ceil(visPids.length/cols)*legRowH+2;
-    legSvg+='<rect x="'+legX+'" y="'+(extraY+2)+'" width="16" height="3" fill="#ffffff" rx="1"/>';
-    legSvg+=svgT(legX+20,extraY+8,'累計売上合計',9,'#ffffff','start');
-    if(beLine>0){
-      var mode2=S.anMode||'cost';
-      var beLbl2=mode2==='full'?'損益分岐(原価+経費)':'損益分岐(原価のみ)';
-      legSvg+='<line x1="'+(legX+100)+'" y1="'+(extraY+4)+'" x2="'+(legX+116)+'" y2="'+(extraY+4)+'" stroke="var(--yellow)" stroke-width="1.5" stroke-dasharray="4,2"/>';
-      legSvg+=svgT(legX+120,extraY+8,beLbl2,9,'var(--yellow)','start');
-    }
-  }
-
-  var totalH=H+LEG_H+LEG_H2+4;
-  el.style.height=totalH+'px';
-  el.innerHTML='<svg viewBox="0 0 '+W+' '+totalH+'" style="width:100%;height:100%;">'+inner+legSvg+'</svg>';
-  renderSoldoutTimeline(hrs,allPids,allSales);
+  return mag;
 }
 function renderSoldoutTimeline(hrs,allPids,allSales){
   var el=document.getElementById('soldoutTimeline');if(!el)return;
   var items=[];
   allPids.forEach(function(pid,i){
-    if(anProdFilter&&!anProdFilter.has(pid))return;
+    if(anProdChoices[pid]===false)return;
     var p=S.p.find(function(x){return x.id===pid;});if(!p)return;
     var evSold=allSales.filter(function(s){return s.pid===pid;}).reduce(function(s,x){return s+x.qty;},0);
     var initStock=p.stock+evSold;if(initStock<=0)return;
@@ -1286,6 +1580,20 @@ function execResetSales(){
 }
 
 // ================================================================ SIM
+// 選択イベントにチェックされている商品のみを返す
+function getSimProds(){
+  var ev=S.e.find(function(e){return e.id===S.simEvId;});
+  var pids=(ev&&ev.productIds&&ev.productIds.length)?ev.productIds:[];
+  if(!pids.length)return[];
+  return pids.map(function(pid){return S.p.find(function(p){return p.id===pid;});}).filter(Boolean);
+}
+// 現在選択中の商品を返す
+function getSimProd(){
+  var prods=getSimProds();
+  if(!prods.length)return null;
+  if(S.simIdx<0||S.simIdx>=prods.length)S.simIdx=0;
+  return prods[S.simIdx];
+}
 function setSimMode(m){
   S.simMode=m;
   ['cost','full','sales'].forEach(function(k){
@@ -1296,9 +1604,17 @@ function setSimMode(m){
 }
 function renderSIM(){
   renderSimEvSel();
-  if(!S.p||!S.p.length){document.getElementById('simTabs').innerHTML='';document.getElementById('simDet').innerHTML='<div class="empty"><div class="emico">📦</div><div>商品を追加してください</div></div>';document.getElementById('simCh').innerHTML='';document.getElementById('simRes').innerHTML='';document.getElementById('simTable').innerHTML='';return;}
-  document.getElementById('simTabs').innerHTML=S.p.map(function(p,i){return '<button class="tab '+(i===S.simIdx?'active':'')+'" onclick="setSimIdx('+i+')">'+(p.emoji||'📖')+' '+(p.title.length>8?p.title.substr(0,8)+'…':p.title)+'</button>';}).join('');
-  // モードボタン初期化
+  var prods=getSimProds();
+  if(!prods.length){
+    var ev=S.e.find(function(e){return e.id===S.simEvId;});
+    var msg=ev?'イベント管理でこのイベントの商品を選択してください':'イベントを選択してください';
+    document.getElementById('simTabs').innerHTML='';
+    document.getElementById('simDet').innerHTML='<div class="empty"><div class="emico">📦</div><div>'+msg+'</div></div>';
+    document.getElementById('simCh').innerHTML='';document.getElementById('simRes').innerHTML='';document.getElementById('simTable').innerHTML='';
+    return;
+  }
+  if(S.simIdx<0||S.simIdx>=prods.length)S.simIdx=0;
+  document.getElementById('simTabs').innerHTML=prods.map(function(p,i){return '<button class="tab '+(i===S.simIdx?'active':'')+'" onclick="setSimIdx('+i+')">'+(p.emoji||'📖')+' '+(p.title.length>8?p.title.substr(0,8)+'…':p.title)+'</button>';}).join('');
   if(!S.simMode)S.simMode='cost';
   ['cost','full','sales'].forEach(function(k){var btn=document.getElementById('smM_'+k);if(btn)btn.classList.toggle('active',k===S.simMode);});
   renderSimDet();renderSimChart();renderSimTable();
@@ -1311,7 +1627,7 @@ function renderSimEvSel(){
   var et=ev?(ev.expenses||[]).reduce(function(s,e){return s+e.amount;},0):0;
   document.getElementById('simExpInfo').textContent=ev?(ev.name+': '+(ev.expenses||[]).map(function(e){return e.name+' ¥'+e.amount.toLocaleString();}).join(' / ')+' (合計: ¥'+et.toLocaleString()+')'):('イベントがありません');
 }
-function selSimEv(id){S.simEvId=id;renderSimEvSel();renderSimChart();renderSimTable();}
+function selSimEv(id){S.simEvId=id;S.simIdx=0;renderSIM();}
 function setSimIdx(i){S.simIdx=i;renderSIM();}
 function gSV(pid,f,def){return simOvr[pid]&&simOvr[pid][f]!==undefined?simOvr[pid][f]:def;}
 function getSimCost(p){
@@ -1321,7 +1637,7 @@ function getSimCost(p){
   return S.simMode==='sales'?0:S.simMode==='full'?base+expAmt:base;
 }
 function renderSimDet(){
-  var p=S.p[S.simIdx];if(!p)return;
+  var p=getSimProd();if(!p)return;
   var sp=gSV(p.id,'price',p.price),so=totOrd(p);
   var fc=getSimCost(p);
   var be=sp>0&&fc>0?Math.ceil(fc/sp):'-',bep=so>0&&sp>0&&fc>0?Math.round(Math.ceil(fc/sp)/so*100):'-';
@@ -1341,7 +1657,7 @@ function renderSimDet(){
     +'<span style="font-size:12px;color:var(--text2);">'+modeLabel+'</span>'
     +'<span style="font-family:\'Space Mono\';font-size:13px;color:var(--yellow);">'+(S.simMode==='sales'?'−':be+'部 / '+bep+'%')+'</span></div>'
     +(S.simMode!=='sales'?'<div class="bebar"><div class="befill" style="width:'+(typeof bep==='number'?Math.min(bep,100):0)+'%"></div></div>':'')
-    +'<div style="font-size:11px;color:var(--text2);">制作費: <span style="font-family:\'Space Mono\';">¥'+totCost(p).toLocaleString()+'</span> / 原価/部: <span style="color:var(--yellow);font-family:\'Space Mono\';">¥'+Math.round(unitCost(p)).toLocaleString()+'</span></div>'
+    +'<div style="font-size:11px;color:var(--text2);">制作費: <span style="font-family:\'Space Mono\';">¥'+totCost(p).toLocaleString()+'</span> / 原価/部(設定): <span style="color:var(--yellow);font-family:\'Space Mono\';">¥'+effUnitCost(p).toLocaleString()+'</span></div>'
     +'</div>'
     +(simOvr[p.id]?'<button class="btn bp bfull" style="margin-top:11px;" onclick="applySimMaster(\''+p.id+'\')">★ マスターデータに反映</button>':'')
     +'</div>';
@@ -1364,7 +1680,7 @@ function applySimMaster(pid){
 function doApplySim(pid){var p=S.p.find(function(x){return x.id===pid;}),ov=simOvr[pid];if(!p||!ov)return;if(ov.price!==undefined)p.price=ov.price;delete simOvr[pid];save();closeM();renderSIM();showToast('マスターデータを更新しました');}
 function renderSimChart(){
   var el=document.getElementById('simCh'),re=document.getElementById('simRes');
-  var p=S.p[S.simIdx];if(!p){el.innerHTML='';re.innerHTML='';return;}
+  var p=getSimProd();if(!p){el.innerHTML='';re.innerHTML='';return;}
   var sp=gSV(p.id,'price',p.price),so=totOrd(p),fc=getSimCost(p);
   var be=sp>0&&fc>0?Math.ceil(fc/sp):0;
   var W=300,H=175,pL=44,pR=10,pT=10,pB=28,gW=W-pL-pR,gH=H-pT-pB;
@@ -1393,7 +1709,7 @@ function renderSimChart(){
 }
 function renderSimTable(){
   var el=document.getElementById('simTable');
-  var p=S.p[S.simIdx];if(!p){el.innerHTML='';return;}
+  var p=getSimProd();if(!p){el.innerHTML='';return;}
   var sp=gSV(p.id,'price',p.price),so=totOrd(p),fc=getSimCost(p);
   var be=sp>0&&fc>0?Math.ceil(fc/sp):Infinity;
   if(so<=0){el.innerHTML='<div style="font-size:11px;color:var(--text3);padding:7px;">発行部数を設定してください</div>';return;}
@@ -1427,12 +1743,101 @@ function dlTpl(page){
   var fn='',c='';
   if(page==='products'){fn='商品テンプレート.csv';c='■ 商品インポートテンプレート\n※ヘッダー行を残したまま2行目以降にデータを入力\n\n'+csvR(['No','タイトル','絵文字','イベント価格','書店価格','発行部数(第1版)','在庫'])+csvR(['1','新刊A','📕','1000','800','100','100'])+csvR(['2','既刊B','📘','700','600','50','50'])+csvR(['3','グッズ','🎁','500','0','200','200']);}
   else if(page==='events'){fn='イベントテンプレート.csv';c='■ イベントインポートテンプレート\n※日付はYYYY-MM-DD形式\n\n'+csvR(['イベント名','開催日'])+csvR(['コミティア150','2026-05-05'])+csvR(['コミケ110','2026-12-28']);}
-  else if(page==='analytics'){fn='分析フォーマット説明.csv';c='■ 分析CSVに含まれるシート\n\n'+csvR(['シート','内容'])+csvR(['イベントサマリー','総売上・利益・経費'])+csvR(['商品別売上','頒布数・粗利など'])+csvR(['時間別売上','時間帯ごと集計'])+csvR(['売上明細','全取引一覧']);}
-  else if(page==='sim'){fn='シミュレーションフォーマット説明.csv';c='■ シミュレーションCSVに含まれるシート\n\n'+csvR(['シート','内容'])+csvR(['シミュ結果','損益分岐・完売時利益'])+csvR(['損益分岐表','10%刻みの収支一覧'])+csvR(['原価内訳','版ごとの原価'])+csvR(['イベント経費','経費一覧']);}
+  else if(page==='analytics'){
+    // 選択中イベントと商品を取得
+    var anEv=S.e.find(function(e){return e.id===S.anEvId;});
+    var anEvName=anEv?anEv.name:'イベント名';
+    var anPids=anEv&&anEv.productIds&&anEv.productIds.length?anEv.productIds:S.p.map(function(p){return p.id;});
+    var anProds=anPids.map(function(pid){return S.p.find(function(p){return p.id===pid;});}).filter(Boolean);
+    // X軸の時間範囲を取得
+    var tplSh=parseInt((document.getElementById('xS')||{value:10}).value)||10;
+    var tplEh=parseInt((document.getElementById('xE')||{value:16}).value)||16;
+    fn='外部集計インポートテンプレート.csv';
+    // 1行目: イベント名
+    c=csvR(['イベント名',anEvName].concat(anProds.slice(1).map(function(){return '';})));
+    // 2行目: ヘッダー（時間帯, 商品名...）
+    c+=csvR(['時間帯'].concat(anProds.map(function(p){return p.title;})));
+    // 30分刻みの行
+    for(var hh=tplSh;hh<=tplEh;hh++){
+      c+=csvR([hh+':00～'].concat(anProds.map(function(){return '';})));
+      if(hh<tplEh)c+=csvR([hh+':30～'].concat(anProds.map(function(){return '';})));
+    }
+  }
   dlCSV(fn,c);showToast('📋 テンプレートをダウンロードしました');
 }
 function importCSV(target){csvTarget=target;document.getElementById('csvFI').click();}
-function handleCSVFile(ev){var file=ev.target.files[0];ev.target.value='';if(!file)return;var r=new FileReader();r.onload=function(e){if(csvTarget==='products')impProds(e.target.result);else if(csvTarget==='events')impEvs(e.target.result);};r.readAsText(file,'UTF-8');}
+function handleCSVFile(ev){var file=ev.target.files[0];ev.target.value='';if(!file)return;var r=new FileReader();r.onload=function(e){if(csvTarget==='products')impProds(e.target.result);else if(csvTarget==='events')impEvs(e.target.result);else if(csvTarget==='analytics')impAnalytics(e.target.result);};r.readAsText(file,'UTF-8');}
+function impAnalytics(text){
+  var lines=text.split('\n').map(function(l){return l.trim();}).filter(function(l){return l;});
+  if(lines.length<3){showToast('取り込めるデータがありませんでした');return;}
+
+  // 1行目からイベント名を取得: "イベント名,コミティア150,..."
+  function splitCSVLine(line){var vals=[],cur='',inQ=false;for(var i=0;i<line.length;i++){var cc=line[i];if(cc==='"'){inQ=!inQ;}else if(cc===','&&!inQ){vals.push(cur.trim().replace(/^"|"$/g,''));cur='';}else cur+=cc;}vals.push(cur.trim().replace(/^"|"$/g,''));return vals;}
+
+  var row0=splitCSVLine(lines[0]);
+  var evNameFromFile='';
+  if(row0[0]==='イベント名'&&row0[1])evNameFromFile=row0[1].trim();
+
+  // テーブル形式かどうか判定: 2行目が "時間帯,商品名,..." ならテーブル形式
+  var row1=splitCSVLine(lines[1]);
+  var isTableFormat=row1[0]==='時間帯';
+
+  if(isTableFormat){
+    // テーブル形式: イベント名行 + 時間帯ヘッダー行 + データ行
+    var evNameToUse=evNameFromFile;
+    var ev=S.e.find(function(e){return e.name===evNameToUse;});
+    if(!ev){showToast('イベント「'+evNameToUse+'」が見つかりません。先にイベントを登録してください。');return;}
+    // ヘッダー行から商品名を取得
+    var prodNames=row1.slice(1);
+    var prods=prodNames.map(function(name){return name?S.p.find(function(p){return p.title===name;}):null;});
+    var n=0,skip=0;
+    for(var i=2;i<lines.length;i++){
+      var row=splitCSVLine(lines[i]);
+      var timeSlot=row[0]||'';
+      // 時刻を取得: "10:30～" → "10:30"
+      var hhmm=timeSlot.replace(/[～~\s].*/,'').trim();
+      if(!hhmm.match(/^\d{1,2}:\d{2}$/))hhmm='10:00';
+      var dateStr=ev.date||new Date().toISOString().slice(0,10);
+      var ts=new Date(dateStr+'T'+hhmm+':00').toISOString();
+      for(var j=0;j<prods.length;j++){
+        var prod=prods[j];if(!prod)continue;
+        var qty=parseInt(row[j+1])||0;if(!qty)continue;
+        S.s.push({id:uid(),eid:ev.id,pid:prod.id,qty:qty,price:prod.price,ts:ts,external:true});
+        n++;
+      }
+    }
+    var msg=n+'件取り込みました';
+    if(skip>0)msg+='（'+skip+'件スキップ）';
+    showToast('📥 '+msg);
+    if(n>0){resetAnFilter();renderAN();}
+  } else {
+    // 旧形式: イベント名,商品名,時刻,数量,単価
+    var rows=parseCSV(text);
+    var n2=0,skip2=0;
+    rows.forEach(function(r){
+      var evName=(r['イベント名']||'').trim();
+      var prodName=(r['商品名']||'').trim();
+      var timeStr=(r['時刻']||'').trim();
+      var qty=Math.max(1,parseInt(r['数量']||1)||1);
+      var priceRaw=r['単価（省略可）']!==undefined?r['単価（省略可）']:r['単価'];
+      if(!evName||!prodName){skip2++;return;}
+      var ev2=S.e.find(function(e){return e.name===evName;});
+      if(!ev2){skip2++;return;}
+      var prod2=S.p.find(function(p){return p.title===prodName;});
+      if(!prod2){skip2++;return;}
+      var price2=priceRaw!==undefined&&priceRaw!==''?Math.max(0,parseInt(priceRaw)||0):prod2.price;
+      var dateStr2=ev2.date||new Date().toISOString().slice(0,10);
+      var hhmm2=timeStr.match(/^(\d{1,2}):(\d{2})$/)?timeStr:'10:00';
+      var ts2=new Date(dateStr2+'T'+hhmm2+':00').toISOString();
+      S.s.push({id:uid(),eid:ev2.id,pid:prod2.id,qty:qty,price:price2,ts:ts2,external:true});
+      n2++;
+    });
+    var msg2=n2+'件取り込みました';
+    if(skip2>0)msg2+='（'+skip2+'件スキップ：イベント名・商品名が一致しないか空欄）';
+    showToast('📥 '+msg2);
+    if(n2>0){resetAnFilter();renderAN();}
+  }
+}
 function parseCSV(text){
   var lines=text.trim().split('\n').filter(function(l){return !l.startsWith('■')&&!l.startsWith('※')&&l.trim();});
   if(lines.length<2)return[];
@@ -1445,13 +1850,13 @@ function exportAnalytics(){
   var ev=S.e.find(function(e){return e.id===S.anEvId;}),evN=ev?ev.name:'不明';
   var sales=fSales();if(!sales.length){showToast('出力するデータがありません');return;}
   var rev=sales.reduce(function(s,x){return s+x.price*x.qty;},0),qty=sales.reduce(function(s,x){return s+x.qty;},0);
-  var cu=0;sales.forEach(function(s){var p=S.p.find(function(x){return x.id===s.pid;});if(p)cu+=unitCost(p)*s.qty;});
+  var cu=0;sales.forEach(function(s){var p=S.p.find(function(x){return x.id===s.pid;});if(p)cu+=effUnitCost(p)*s.qty;});
   var exp=(ev&&ev.expenses||[]).reduce(function(s,e){return s+e.amount;},0);
   var c='■ イベントサマリー\n'+csvR(['イベント名','開催日','総売上','総頒布数','純利益(原価差引)','実質収支(原価+経費)','総経費','原価合計']);
   c+=csvR([evN,ev?ev.date:'',rev,qty,Math.round(rev-cu),Math.round(rev-cu-exp),exp,Math.round(cu)]);
   c+='\n■ 商品別売上\n'+csvR(['商品名','頒布数','売上金額','原価/部','粗利','粗利率%']);
   var byP={};sales.forEach(function(s){if(!byP[s.pid])byP[s.pid]={q:0,r:0};byP[s.pid].q+=s.qty;byP[s.pid].r+=s.price*s.qty;});
-  Object.entries(byP).forEach(function(e){var p=S.p.find(function(x){return x.id===e[0];}),uc=p?unitCost(p):0,gp=e[1].r-uc*e[1].q;c+=csvR([p?p.title:'不明',e[1].q,e[1].r,Math.round(uc),Math.round(gp),e[1].r>0?Math.round(gp/e[1].r*100):'0']);});
+  Object.entries(byP).forEach(function(e){var p=S.p.find(function(x){return x.id===e[0];}),uc=p?effUnitCost(p):0,gp=e[1].r-uc*e[1].q;c+=csvR([p?p.title:'不明',e[1].q,e[1].r,Math.round(uc),Math.round(gp),e[1].r>0?Math.round(gp/e[1].r*100):'0']);});
   c+='\n■ 時間別売上\n'+csvR(['時間','売上金額','頒布数']);
   var bh={};sales.forEach(function(s){var h=new Date(s.ts).getHours();if(!bh[h])bh[h]={m:0,c:0};bh[h].m+=s.price*s.qty;bh[h].c+=s.qty;});
   Object.entries(bh).sort(function(a,b){return +a[0]-+b[0];}).forEach(function(e){c+=csvR([e[0]+'時',e[1].m,e[1].c]);});
@@ -1460,7 +1865,7 @@ function exportAnalytics(){
   dlCSV('分析_'+evN+'_'+new Date().toLocaleDateString('ja-JP').replace(/\//g,'-')+'.csv',c);showToast('📤 分析CSVを出力しました');
 }
 function exportSim(){
-  var p=S.p[S.simIdx];if(!p){showToast('商品がありません');return;}
+  var p=getSimProd();if(!p){showToast('商品がありません');return;}
   var sp=gSV(p.id,'price',p.price),so=totOrd(p),tc=totCost(p);
   var ev=S.e.find(function(e){return e.id===S.simEvId;}),et=(ev&&ev.expenses||[]).reduce(function(s,e){return s+e.amount;},0);
   var beS=sp>0&&tc>0?Math.ceil(tc/sp):'-',beR=sp>0&&(tc+et)>0?Math.ceil((tc+et)/sp):'-';
@@ -1523,52 +1928,306 @@ async function resetPassword(){
   if(r.error)showAuthErr(r.error.message);else showAuthErr('パスワードリセットメールを送りました');
 }
 function showAuthErr(msg){var el=document.getElementById('loginErr');el.textContent=msg;el.style.display='block';}
-function onLogin(user){
+async function onLogin(user){
   currentUser=user;
-  // ログイン画面を隠し、メインアプリを表示
   document.getElementById('loginScreen').classList.remove('show');
   document.getElementById('mainApp').style.display='block';
   document.getElementById('userBtn').title=user.email||'ログイン中';
   var key='djp_v4_'+user.id;
   localStorage.setItem('djp_user_key',key);
-  loadData(key);
+  await loadData(key);
   applyTheme();
   renderPage();
-  showToast('✅ ログインしました: '+(user.email||'Googleアカウント'));
+  showToast('✅ ログインしました: '+(user.email||''));
 }
 function applyTheme(){if(S.theme==='light'){document.body.className='light';document.getElementById('themeBtn').textContent='🌙';}else{document.body.className='';document.getElementById('themeBtn').textContent='☀️';}}
 function showUserMenu(){
-  var user=currentUser;if(!user)return;
+  var user=currentUser;
+  if(!user){
+    // ローカルモード
+    openM('<div class="mtit">📱 ローカルモード</div>'
+      +'<div style="text-align:center;padding:10px 0;"><div style="font-size:13px;color:var(--text2);margin-bottom:4px;">データはこのデバイスにのみ保存されています</div><div style="font-size:12px;color:var(--text3);">クラウド同期するにはログインが必要です</div></div>'
+      +'<div class="mact" style="flex-direction:column;gap:8px;">'
+      +'<button class="btn bp bfull" onclick="doGoToLogin()">🔑 アカウントでログイン</button>'
+      +'<button class="btn bg bfull" onclick="closeM()">閉じる</button>'
+      +'</div>');
+    return;
+  }
   openM('<div class="mtit">👤 アカウント</div>'
     +'<div style="text-align:center;padding:10px 0;"><div style="font-size:13px;color:var(--text2);margin-bottom:4px;">ログイン中</div><div style="font-size:14px;font-weight:700;">'+(user.email||'Googleアカウント')+'</div></div>'
     +'<div class="mact" style="flex-direction:column;gap:8px;"><button class="btn bd bfull" onclick="doLogout()">🚪 ログアウト</button><button class="btn bg bfull" onclick="closeM()">閉じる</button></div>');
 }
 async function doLogout(){
   if(sbClient)await sbClient.auth.signOut();
-  currentUser=null;localStorage.removeItem('djp_user_key');
+  currentUser=null;
+  localStorage.removeItem('djp_user_key');
+  localStorage.removeItem('djp_local_mode');
   document.getElementById('mainApp').style.display='none';
   document.getElementById('loginScreen').classList.add('show');
   closeM();showToast('ログアウトしました');
 }
-function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';applyTheme();save();}
+function doGoToLogin(){
+  closeM();
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('loginScreen').classList.add('show');
+}
+function enterLocalMode(){
+  var lsKey='djp_v4_local';
+  localStorage.setItem('djp_user_key',lsKey);
+  localStorage.setItem('djp_local_mode','1');
+  currentUser=null;
+  loadData(lsKey);
+  applyTheme();
+  document.getElementById('loginScreen').classList.remove('show');
+  document.getElementById('mainApp').style.display='block';
+  document.getElementById('userBtn').title='ローカルモード';
+  document.getElementById('userBtn').textContent='📱';
+  renderPage();
+  showToast('📱 ローカルモードで起動しました');
+}
+function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';applyTheme();save();renderChart();}
 
-// ================================================================ INIT
-window.addEventListener('online',function(){document.getElementById('sdot').classList.remove('off');});
+
+// ================================================================ TUTORIAL
+var TUTS={
+  register:[
+    {el:'evSel',
+     title:'① イベント選択',
+     body:'開催中のイベントをここで選びます。選択したイベントに登録した商品だけがレジに表示されます。'},
+    {el:'prodDisp',
+     title:'② 商品タイル',
+     body:'商品をタップするとカートに追加されます。複数版がある商品は版選択ダイアログが表示されます。同じ商品を何度もタップすると数量が増えます。'},
+    {qs:'.vtog',
+     title:'③ 表示切り替え',
+     body:'⊞でカード表示、☰でリスト表示に切り替えられます。商品数が多いときはリスト表示が便利です。'},
+    {el:'totAmt',
+     title:'④ 合計金額',
+     body:'カートの合計金額がリアルタイムで表示されます。'},
+    {qs:'.qcash',
+     title:'⑤ お預かり金額',
+     body:'よく使う金額ボタンをタップしてお預かり金額を入力します。⌨ボタンで任意の金額をテンキーから入力できます。'},
+    {el:'chDisp',
+     title:'⑥ お釣り表示',
+     body:'お預かり金額を入力すると、お釣りが自動で計算されます。金額が不足している場合は赤字で表示されます。'},
+    {qs:'.btn.bs.bfull',
+     title:'⑦ 会計確定',
+     body:'「✓ 会計確定」で内容確認→確定します。売上が記録され、在庫が自動で減ります。「取消」でカートをリセットできます。'}
+  ],
+  products:[
+    {qs:'[onclick="openAddProduct()"]',
+     title:'① 商品の追加',
+     body:'「＋ 追加」ボタンで新しい商品を登録します。タイトル・絵文字・イベント価格・書店価格・在庫数を入力します。'},
+    {el:'pmList',
+     title:'② 商品カード一覧',
+     body:'登録済み商品が一覧表示されます。No.欄の数字で並び順を変更できます。タイトル・絵文字は直接クリックして編集可能です。完売商品は下に移動します。'},
+    {el:'pmList',
+     title:'③ 価格・在庫の編集',
+     body:'イベント価格・書店価格・在庫をその場で直接編集できます。「📦 在庫追加」ボタンで在庫を積み増しすることもできます。'},
+    {el:'pmList',
+     title:'④ 発行版数と原価設定',
+     body:'「📚 発行版数」を開くと版ごとに印刷部数と原価を設定できます。各版の右端にある入力欄に「設定原価/部」を入力すると小数点以下の単価も指定できます（空欄なら自動計算）。'},
+    {qs:'[onclick="dlTpl(\'products\')"]',
+     title:'⑤ CSV一括取込',
+     body:'「取込用テンプレ出力」でExcel用CSVをダウンロード→入力後「テンプレ取込」で商品を一括登録できます。商品数が多い場合に便利です。'}
+  ],
+  events:[
+    {qs:'[onclick="openAddEvent()"]',
+     title:'① イベントの追加',
+     body:'「＋ 追加」でイベント名と開催日を登録します。開催日は分析画面の「過去イベント分の損益分岐計算」に使用されます。正確に入力しましょう。'},
+    {el:'evList',
+     title:'② イベント一覧',
+     body:'登録済みイベントが開催日の新しい順に表示されます。鉛筆アイコンから名前・日付を編集できます。'},
+    {el:'evList',
+     title:'③ 頒布商品の割り当て',
+     body:'「頒布商品 ▼」を開き、このイベントで販売する商品にチェックを入れます。レジ・分析・シミュで表示される商品が絞り込まれます。'},
+    {el:'evList',
+     title:'④ 経費の登録',
+     body:'「経費 ▼」を開いて参加費・交通費・宿泊費などを登録します。分析・シミュの「実質損益」モードでこの経費が損益分岐に加算されます。'},
+    {el:'evList',
+     title:'⑤ ロック機能',
+     body:'「🔒 ロック」するとイベントの売上データが保護され、売上リセット操作の対象外になります。イベントが終わったらロックしておきましょう。'}
+  ],
+  analytics:[
+    {el:'anEvSel',
+     title:'① イベント切り替え',
+     body:'分析するイベントをタップで切り替えます。切り替えても下の「表示商品」の選択状態は保持されるため、商品を絞ったまま複数イベントを比較できます。'},
+    {el:'anModeBar',
+     title:'② 損益計算モード',
+     body:'「単純損益(原価のみ)」は印刷費等の原価だけで計算、「実質損益(経費込み)」はさらにイベント経費も含めた計算です。「売上のみ」はコストを無視した表示です。'},
+    {el:'statsGrid',
+     title:'③ サマリー数値',
+     body:'選択中の商品の売上・利益・原価・頒布数をリアルタイム集計します。下の「表示商品」で絞り込むとここの数字も連動して変わります。'},
+    {el:'prodChecks',
+     title:'④ 表示商品フィルタ',
+     body:'商品ボタンをタップするとON/OFFを切り替えられます。OFFにするとグラフ・集計から除外されます。イベントをまたいで特定商品だけ比較したいときに使います。'},
+    {el:'yCount',
+     title:'⑤ 部数グラフ',
+     body:'「帯別」で時間帯ごとの頒布数棒グラフ、「累計」で累積折れ線グラフを表示します。両方同時にONにすることもできます。'},
+    {el:'yCumTotalMoney',
+     title:'⑥ 金額グラフ・損益分岐',
+     body:'「合計」をONにすると売上合計折れ線と損益分岐の破線が表示されます。折れ線が破線を超えた時点が黒字転換です。過去イベントで回収済みの金額は自動で差し引かれます。'},
+    {el:'shareCh',
+     title:'⑦ 商品別シェア',
+     body:'各商品の売上金額の割合をカラーバーで表示します。どの商品が売上の柱かひと目でわかります。'},
+    {qs:'[onclick="exportAnalytics()"]',
+     title:'⑧ CSV出力・外部取込',
+     body:'「CSV出力」でこのイベントの売上データをCSVに書き出せます。「外部取込」を使うと他のツールで記録した売上データをインポートできます。'}
+  ],
+  sim:[
+    {el:'simEvSel',
+     title:'① イベント選択',
+     body:'シミュレーション対象のイベントを選びます。選択したイベントに登録された商品だけがタブに表示されます。'},
+    {el:'simTabs',
+     title:'② 商品タブ',
+     body:'タブをタップして商品を切り替えます。各商品の損益を個別に確認できます。'},
+    {el:'simDet',
+     title:'③ 価格シミュレーション',
+     body:'「変更」ボタンで販売価格を仮変更して損益分岐を試算できます。変更は一時的なもので商品マスターには反映されません。「★ マスターデータに反映」で正式に価格変更できます。'},
+    {el:'simModeBar',
+     title:'④ 計算モード',
+     body:'「単純損益」は原価のみ、「実質損益」はイベント経費も含めた計算です。経費はイベント管理画面で登録できます。'},
+    {el:'simCh',
+     title:'⑤ 損益分岐グラフ',
+     body:'横軸が頒布数、縦軸が金額です。緑の実線が売上、赤の破線がコスト、黄色の縦線とドットが損益分岐点です。'},
+    {el:'simTable',
+     title:'⑥ 損益テーブル',
+     body:'頒布率10%刻みで売上・利益をシミュレーションします。🔶マークが損益分岐点を超える最初の行です。CSV出力で手元に残せます。'}
+  ]
+};
+
+var tutCur=-1,tutPage='';
+
+function startTutorial(){
+  tutPage=S.page||'register';
+  var steps=TUTS[tutPage];
+  if(!steps||!steps.length){showToast('このページのヘルプはありません');return;}
+  tutCur=0;
+  document.getElementById('tutOverlay').classList.add('active');
+  showTutStep(0);
+}
+
+function tutTarget(step){
+  if(step.qs)return document.querySelector(step.qs);
+  if(step.el)return document.getElementById(step.el);
+  return null;
+}
+
+function showTutStep(idx){
+  var steps=TUTS[tutPage];
+  if(!steps||idx<0||idx>=steps.length){closeTutorial();return;}
+  tutCur=idx;
+  var step=steps[idx];
+  var el=tutTarget(step);
+  var spot=document.getElementById('tutSpot');
+  var box=document.getElementById('tutBox');
+  if(el){
+    el.scrollIntoView({behavior:'smooth',block:'nearest'});
+    setTimeout(function(){_posTut(el,steps.length);},el.getBoundingClientRect().top<0||el.getBoundingClientRect().bottom>window.innerHeight?260:20);
+  } else {
+    spot.style.display='none';
+    _posTutCenter(steps.length);
+  }
+}
+
+function _posTut(el,total){
+  var step=TUTS[tutPage][tutCur];
+  var spot=document.getElementById('tutSpot');
+  var box=document.getElementById('tutBox');
+  var r=el.getBoundingClientRect();
+  var pad=5,vw=window.innerWidth,vh=window.innerHeight;
+  // Spotlight
+  spot.style.cssText='display:block;position:fixed;'
+    +'left:'+(r.left-pad)+'px;top:'+(r.top-pad)+'px;'
+    +'width:'+(r.width+pad*2)+'px;height:'+(r.height+pad*2)+'px;'
+    +'border-radius:8px;z-index:9001;pointer-events:none;'
+    +'outline:2.5px solid var(--accent);outline-offset:1px;'
+    +'box-shadow:0 0 0 9999px rgba(0,0,0,.73);';
+  // Box content
+  _renderBox(box,step,total);
+  box.style.display='block';
+  // Positioning: prefer below, else above
+  var bh=box.offsetHeight||150,bw=box.offsetWidth||288;
+  var bLeft=Math.max(10,Math.min(r.left+(r.width/2)-(bw/2),vw-bw-10));
+  var bTop;
+  if(r.bottom+bh+16<vh){bTop=r.bottom+pad+12;}
+  else if(r.top-bh-16>0){bTop=r.top-pad-bh-12;}
+  else{bTop=Math.max(10,Math.min(r.bottom+8,vh-bh-10));}
+  box.style.left=bLeft+'px';
+  box.style.top=bTop+'px';
+}
+
+function _posTutCenter(total){
+  var step=TUTS[tutPage][tutCur];
+  var box=document.getElementById('tutBox');
+  _renderBox(box,step,total);
+  box.style.display='block';
+  var bh=box.offsetHeight||160,bw=box.offsetWidth||288;
+  box.style.left=Math.max(10,(window.innerWidth-bw)/2)+'px';
+  box.style.top=Math.max(10,(window.innerHeight-bh)/2)+'px';
+}
+
+function _renderBox(box,step,total){
+  var idx=tutCur;
+  // Progress pips
+  var pips='';
+  for(var i=0;i<total;i++){
+    pips+='<div class="tut-pip '+(i<idx?'done':i===idx?'cur':'')+'" ></div>';
+  }
+  box.innerHTML=
+    '<div class="tut-prog">'+pips+'</div>'
+    +'<div class="tut-title">'+step.title+'</div>'
+    +'<div class="tut-body">'+step.body+'</div>'
+    +'<div class="tut-nav">'
+    +'<button class="tut-close" onclick="closeTutorial()">✕ 閉じる</button>'
+    +(idx>0?'<button class="tut-prev" onclick="tutPrev()">← 前へ</button>':'')
+    +(idx<total-1
+       ?'<button class="tut-next" onclick="tutNext()">次へ →</button>'
+       :'<button class="tut-done" onclick="closeTutorial()">✓ 完了</button>')
+    +'</div>';
+}
+
+function tutNext(){showTutStep(tutCur+1);}
+function tutPrev(){showTutStep(tutCur-1);}
+function closeTutorial(){
+  document.getElementById('tutSpot').style.display='none';
+  document.getElementById('tutBox').style.display='none';
+  document.getElementById('tutOverlay').classList.remove('active');
+}
+
 window.addEventListener('offline',function(){document.getElementById('sdot').classList.add('off');});
 
 (async function initApp(){
   var sbOk=initSupabase();
+
+  // ローカルモードフラグが立っている場合は即起動
+  if(localStorage.getItem('djp_local_mode')==='1'){
+    var lsKey=localStorage.getItem('djp_user_key')||'djp_v4_local';
+    currentUser=null;
+    loadData(lsKey);
+    applyTheme();
+    document.getElementById('loadingScreen').classList.add('hide');
+    document.getElementById('mainApp').style.display='block';
+    document.getElementById('userBtn').title='ローカルモード';
+    document.getElementById('userBtn').textContent='📱';
+    renderReg();
+    return;
+  }
+
   if(sbOk&&SUPABASE_URL!=='https://YOUR_PROJECT.supabase.co'){
-    // セッション確認が完了するまで何も表示しない
-    var sessionData=await sbClient.auth.getSession();
-    var session=sessionData.data&&sessionData.data.session;
+    // セッション確認（タイムアウト付き）
+    var sessionData=null;
+    try{
+      var timeout=new Promise(function(res){setTimeout(function(){res(null);},4000);});
+      sessionData=await Promise.race([sbClient.auth.getSession(),timeout]);
+    }catch(e){sessionData=null;}
+
+    var session=sessionData&&sessionData.data&&sessionData.data.session;
+    document.getElementById('loadingScreen').classList.add('hide');
+
     if(session&&session.user){
-      // 既存セッションあり → 直接ログイン
       onLogin(session.user);
     } else {
-      // セッションなし → ログイン画面を表示
       document.getElementById('loginScreen').classList.add('show');
-      // OAuth redirect後の処理
       sbClient.auth.onAuthStateChange(function(event,session){
         if(session&&session.user){
           document.getElementById('loginScreen').classList.remove('show');
@@ -1577,7 +2236,8 @@ window.addEventListener('offline',function(){document.getElementById('sdot').cla
       });
     }
   } else {
-    // Supabase未設定: ローカルモード
+    // Supabase未設定: ローカルモードで起動
+    document.getElementById('loadingScreen').classList.add('hide');
     var lsKey=localStorage.getItem('djp_user_key')||'djp_v4';
     loadData(lsKey);
     applyTheme();
