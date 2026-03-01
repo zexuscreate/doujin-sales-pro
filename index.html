@@ -414,7 +414,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     <div id="prodDisp"></div>
     <div class="cob">
       <div class="tod"><span class="tol">合計金額</span><span class="toa" id="totAmt">¥0</span></div>
-      <div class="qcash">
+      <div class="qcash" id="qcash">
         <button class="qcb" onclick="setPP(500)">500</button>
         <button class="qcb" onclick="setPP(1000)">1,000</button>
         <button class="qcb" onclick="setPP(5000)">5,000</button>
@@ -422,21 +422,21 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
         <button class="qcb" onclick="openNP('prepay')">⌨</button>
       </div>
       <div class="chdsp" id="chDisp">お釣り: <span class="cha">-</span></div>
-      <div style="display:flex;gap:7px;">
+      <div style="display:flex;gap:7px;" id="cobBtns">
         <button class="btn bg" style="flex:.4;" onclick="resetCart()">取消</button>
-        <button class="btn bs bfull" style="flex:1;" onclick="confirmSale()">✓ 会計確定</button>
+        <button class="btn bs bfull" id="confirmSaleBtn" style="flex:1;" onclick="confirmSale()">✓ 会計確定</button>
       </div>
     </div>
   </div>
 
   <!-- PRODUCTS -->
   <div class="page" id="page-products">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;" id="pmHeader">
       <h2 style="font-size:16px;font-weight:700;">商品管理</h2>
       <div style="display:flex;gap:5px;">
-        <button class="btn bg bsm" onclick="dlTpl('products')">📋 取込用テンプレ出力</button>
+        <button class="btn bg bsm" id="dlTplProductsBtn" onclick="dlTpl('products')">📋 取込用テンプレ出力</button>
         <button class="btn bg bsm" onclick="importCSV('products')">📥 テンプレ取込</button>
-        <button class="btn bp bsm" onclick="openAddProduct()">＋ 追加</button>
+        <button class="btn bp bsm" id="addProductBtn" onclick="openAddProduct()">＋ 追加</button>
       </div>
     </div>
     <div id="pmList"></div>
@@ -444,12 +444,12 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 
   <!-- EVENTS -->
   <div class="page" id="page-events">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;" id="evHeader">
       <h2 style="font-size:16px;font-weight:700;">イベント管理</h2>
       <div style="display:flex;gap:5px;">
         <button class="btn bg bsm" onclick="dlTpl('events')">📋 取込用テンプレ出力</button>
         <button class="btn bg bsm" onclick="importCSV('events')">📥 テンプレ取込</button>
-        <button class="btn bp bsm" onclick="openAddEvent()">＋ 追加</button>
+        <button class="btn bp bsm" id="addEventBtn" onclick="openAddEvent()">＋ 追加</button>
       </div>
     </div>
     <div id="evList"></div>
@@ -462,7 +462,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       <div style="display:flex;gap:5px;">
         <button class="btn bg bsm" onclick="dlTpl('analytics')">📋 外部集計取込用テンプレ出力</button>
         <button class="btn bg bsm" onclick="importCSV('analytics')">📥 外部取込</button>
-        <button class="btn bg bsm" onclick="exportAnalytics()">📤 CSV出力</button>
+        <button class="btn bg bsm" onclick="exportAnalytics()" id="exportAnalyticsBtn">📤 CSV出力</button>
         <button class="btn bd bsm" onclick="confirmResetSales()">🗑 リセット</button>
       </div>
     </div>
@@ -2015,18 +2015,18 @@ var TUTS={
     {el:'totAmt',
      title:'④ 合計金額',
      body:'カートの合計金額がリアルタイムで表示されます。'},
-    {qs:'.qcash',
+    {el:'qcash',
      title:'⑤ お預かり金額',
      body:'よく使う金額ボタンをタップしてお預かり金額を入力します。⌨ボタンで任意の金額をテンキーから入力できます。'},
     {el:'chDisp',
      title:'⑥ お釣り表示',
      body:'お預かり金額を入力すると、お釣りが自動で計算されます。金額が不足している場合は赤字で表示されます。'},
-    {qs:'.btn.bs.bfull',
+    {el:'confirmSaleBtn',
      title:'⑦ 会計確定',
      body:'「✓ 会計確定」で内容確認→確定します。売上が記録され、在庫が自動で減ります。「取消」でカートをリセットできます。'}
   ],
   products:[
-    {qs:'[onclick="openAddProduct()"]',
+    {el:'addProductBtn',
      title:'① 商品の追加',
      body:'「＋ 追加」ボタンで新しい商品を登録します。タイトル・絵文字・イベント価格・書店価格・在庫数を入力します。'},
     {el:'pmList',
@@ -2038,12 +2038,12 @@ var TUTS={
     {el:'pmList',
      title:'④ 発行版数と原価設定',
      body:'「📚 発行版数」を開くと版ごとに印刷部数と原価を設定できます。各版の右端にある入力欄に「設定原価/部」を入力すると小数点以下の単価も指定できます（空欄なら自動計算）。'},
-    {qs:'[onclick="dlTpl(\'products\')"]',
+    {el:'dlTplProductsBtn',
      title:'⑤ CSV一括取込',
      body:'「取込用テンプレ出力」でExcel用CSVをダウンロード→入力後「テンプレ取込」で商品を一括登録できます。商品数が多い場合に便利です。'}
   ],
   events:[
-    {qs:'[onclick="openAddEvent()"]',
+    {el:'addEventBtn',
      title:'① イベントの追加',
      body:'「＋ 追加」でイベント名と開催日を登録します。開催日は分析画面の「過去イベント分の損益分岐計算」に使用されます。正確に入力しましょう。'},
     {el:'evList',
@@ -2081,7 +2081,7 @@ var TUTS={
     {el:'shareCh',
      title:'⑦ 商品別シェア',
      body:'各商品の売上金額の割合をカラーバーで表示します。どの商品が売上の柱かひと目でわかります。'},
-    {qs:'[onclick="exportAnalytics()"]',
+    {el:'exportAnalyticsBtn',
      title:'⑧ CSV出力・外部取込',
      body:'「CSV出力」でこのイベントの売上データをCSVに書き出せます。「外部取込」を使うと他のツールで記録した売上データをインポートできます。'}
   ],
@@ -2119,9 +2119,7 @@ function startTutorial(){
 }
 
 function tutTarget(step){
-  if(step.qs)return document.querySelector(step.qs);
-  if(step.el)return document.getElementById(step.el);
-  return null;
+  return step.el?document.getElementById(step.el):null;
 }
 
 function showTutStep(idx){
