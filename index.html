@@ -2133,65 +2133,57 @@ function showTutStep(idx){
     _posTutCenter(steps.length);
     return;
   }
-  // ページごとのセーフゾーン（固定バーに隠れない範囲）
-  var safeTop=_getSafeTop();
-  var safeBot=_getSafeBot();
-  var mc=document.querySelector('.mc');
-  if(mc){
-    var r=el.getBoundingClientRect();
-    var elH=r.height;
-    // 要素の上端がセーフゾーン内に入るようにスクロール量を計算
-    var needsScroll=false;
-    var targetScrollTop=mc.scrollTop;
-    if(r.top<safeTop+10){
-      // 上が隠れている→要素上端をセーフゾーン上端から20px下に
-      targetScrollTop=mc.scrollTop+(r.top-safeTop)-20;
-      needsScroll=true;
-    } else if(r.bottom>safeBot-10){
-      // 下が隠れている→要素下端がセーフゾーン下端から20px上に
-      targetScrollTop=mc.scrollTop+(r.bottom-safeBot)+20;
-      needsScroll=true;
-    }
-    if(needsScroll){
-      // instant でスクロール（完了を待つ必要がなく確実）
-      mc.scrollTop=Math.max(0,targetScrollTop);
-    }
-  }
-  // rAF×2で確実にDOM反映後に位置計算
-  requestAnimationFrame(function(){
-    requestAnimationFrame(function(){
-      _posTut(el,steps.length);
-    });
-  });
+  _scrollToEl(el,function(){_posTut(el,steps.length);});
 }
 
-function _getSafeTop(){
-  // ヘッダーの実際の高さを取得
+// 固定バーを避けたセーフゾーンを返す
+function _safeZone(){
   var header=document.querySelector('.header');
-  return header?header.getBoundingClientRect().bottom:48;
-}
-
-function _getSafeBot(){
-  var vh=window.innerHeight;
-  // ボトムナビの実際の位置
   var bnav=document.querySelector('.bnav');
-  var bnavTop=bnav?bnav.getBoundingClientRect().top:vh-56;
-  // レジページは会計バー(.cob)もある
+  var top=(header?header.getBoundingClientRect().bottom:48)+8;
+  var bot=(bnav?bnav.getBoundingClientRect().top:window.innerHeight-56)-8;
+  // レジページは会計バーも避ける
   if(tutPage==='register'){
     var cob=document.querySelector('.cob');
-    if(cob){var cobTop=cob.getBoundingClientRect().top;return Math.min(bnavTop,cobTop)-4;}
+    if(cob)bot=Math.min(bot,cob.getBoundingClientRect().top-8);
   }
-  return bnavTop-4;
+  return{top:top,bot:bot};
 }
+
+// 要素をセーフゾーン内に収まるよう即時スクロールしてcallback
+function _scrollToEl(el,cb){
+  var mc=document.querySelector('.mc');
+  if(!mc){cb();return;}
+  var sz=_safeZone();
+  var r=el.getBoundingClientRect();
+  var safeH=sz.bot-sz.top;
+  var elH=r.height;
+  var margin=20;
+  var delta=0;
+  if(r.top<sz.top+margin){
+    // 上が隠れている：要素上端をsafeTop+marginに
+    delta=r.top-(sz.top+margin);
+  } else if(r.bottom>sz.bot-margin && elH<safeH){
+    // 下が隠れている（かつ要素がセーフゾーンより小さい場合）
+    delta=r.bottom-(sz.bot-margin);
+  }
+  if(delta!==0){
+    mc.scrollTop=Math.max(0,mc.scrollTop+delta);
+  }
+  // scrollTop は同期的に反映される。rAF1回でDOM再描画後に座標取得
+  requestAnimationFrame(cb);
+}
+
+function _getSafeTop(){return _safeZone().top;}
+function _getSafeBot(){return _safeZone().bot;}
 
 function _posTut(el,total){
   var step=TUTS[tutPage][tutCur];
   var spot=document.getElementById('tutSpot');
   var box=document.getElementById('tutBox');
   var r=el.getBoundingClientRect();
-  var pad=5,vw=window.innerWidth,vh=window.innerHeight;
-  var safeTop=_getSafeTop();
-  var safeBot=_getSafeBot();
+  var sz=_safeZone();
+  var pad=5,vw=window.innerWidth;
 
   // Spotlight
   spot.style.cssText='display:block;position:fixed;'
@@ -2206,20 +2198,19 @@ function _posTut(el,total){
   box.style.display='block';
   var bh=box.offsetHeight||150,bw=box.offsetWidth||288;
 
-  // 水平位置：要素の中央寄せ、画面端に収める
+  // 水平：要素中央、画面端に収める
   var bLeft=Math.max(10,Math.min(r.left+(r.width/2)-(bw/2),vw-bw-10));
 
-  // 垂直位置：下→上→中央の優先順
+  // 垂直：要素の下→上→セーフゾーン内で最適な位置
   var bTop;
-  if(r.bottom+bh+14<=safeBot){
-    bTop=r.bottom+pad+10;                       // 要素の下
-  } else if(r.top-bh-14>=safeTop){
-    bTop=r.top-pad-bh-10;                       // 要素の上
+  if(r.bottom+12+bh<=sz.bot){
+    bTop=r.bottom+pad+10;
+  } else if(r.top-12-bh>=sz.top){
+    bTop=r.top-pad-bh-10;
   } else {
-    // どちらにも収まらない → セーフゾーン内中央
-    bTop=Math.max(safeTop+6,Math.min(safeBot-bh-6,(safeTop+safeBot-bh)/2));
+    // どちらにも入らない場合：セーフゾーン内中央
+    bTop=Math.max(sz.top+4,(sz.top+sz.bot-bh)/2);
   }
-
   box.style.left=bLeft+'px';
   box.style.top=bTop+'px';
 }
