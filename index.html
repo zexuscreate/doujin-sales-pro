@@ -100,8 +100,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .echip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
 
 /* ---- PRODUCT TILES ---- */
-.pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
-.ptile{aspect-ratio:2/3;border-radius:var(--rs);border:2px solid var(--border);overflow:hidden;cursor:pointer;position:relative;background:var(--card);transition:border-color .2s;user-select:none;}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,160px));gap:10px;justify-content:start;}
+.ptile{aspect-ratio:2/3;border-radius:var(--rs);border:2px solid var(--border);overflow:hidden;cursor:pointer;position:relative;background:var(--card);transition:border-color .2s;user-select:none;width:100%;}
 .ptile:active{transform:scale(.98);}
 .ptile.sel{border-color:var(--accent);}
 .ptile.sout{opacity:.5;}
@@ -368,6 +368,14 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     </div>
   </div>
   <div style="margin-top:20px;font-size:11px;color:var(--text3);text-align:center;">データはSupabaseクラウドに安全に保存されます</div>
+  <div style="margin-top:8px;width:100%;max-width:340px;background:rgba(124,106,247,.12);border:1px solid rgba(124,106,247,.35);border-radius:10px;padding:10px 14px;display:flex;gap:8px;align-items:flex-start;">
+    <span style="font-size:15px;flex-shrink:0;">☁️</span>
+    <div style="font-size:11px;color:var(--text2);line-height:1.6;">
+      <strong style="color:var(--accent);">メールログインのメリット</strong><br>
+      同じアカウントでログインすれば<br>
+      <strong>スマホ・PC など複数デバイスで同じデータ</strong>を共有・同期できます。
+    </div>
+  </div>
   <div style="margin-top:24px;width:100%;max-width:340px;">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
       <div style="flex:1;height:1px;background:var(--border);"></div>
@@ -1330,7 +1338,7 @@ function renderCountChart(){
   // コンテナ幅からグラフサイズを動的計算
   var container=el.parentElement||el;
   var contW=container.offsetWidth||300;
-  var W=Math.max(260,Math.round(contW*0.96));
+  var W=Math.max(260,Math.min(520,Math.round(contW*0.96)));
   var H=Math.max(180,Math.round(W*0.62));
   var pL=32,pR=W-10,pT=14,pB=H-20,gW=pR-pL,gH=pB-pT;
   var nH=hrs.length,slotW=nH>1?gW/nH:gW;
@@ -1411,7 +1419,7 @@ function renderMoneyChart(){
 
   var container=el.parentElement||el;
   var contW=container.offsetWidth||300;
-  var W=Math.max(260,Math.round(contW*0.96));
+  var W=Math.max(260,Math.min(520,Math.round(contW*0.96)));
   var H=Math.max(180,Math.round(W*0.62));
   var pL=34,pR=W-10,pT=14,pB=H-20,gW=pR-pL,gH=pB-pT;
   var nH=hrs.length,slotW=nH>1?gW/nH:gW;
@@ -1900,11 +1908,6 @@ function switchAuthTab(tab){
   document.getElementById('forgotArea').style.display=tab==='login'?'block':'none';
   document.getElementById('loginErr').style.display='none';
 }
-async function loginWithGoogle(){
-  if(!sbClient){showAuthErr('Supabaseの設定が必要です。');return;}
-  var r=await sbClient.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.href}});
-  if(r.error)showAuthErr(r.error.message);
-}
 async function submitAuth(){
   if(!sbClient){showAuthErr('Supabaseの設定が必要です。');return;}
   var email=document.getElementById('authEmail').value.trim();
@@ -1949,12 +1952,13 @@ function showUserMenu(){
       +'<div style="text-align:center;padding:10px 0;"><div style="font-size:13px;color:var(--text2);margin-bottom:4px;">データはこのデバイスにのみ保存されています</div><div style="font-size:12px;color:var(--text3);">クラウド同期するにはログインが必要です</div></div>'
       +'<div class="mact" style="flex-direction:column;gap:8px;">'
       +'<button class="btn bp bfull" onclick="doGoToLogin()">🔑 アカウントでログイン</button>'
+      +'<button class="btn bd bfull" onclick="doExitToLogin()">↩ ログイン画面に戻る</button>'
       +'<button class="btn bg bfull" onclick="closeM()">閉じる</button>'
       +'</div>');
     return;
   }
   openM('<div class="mtit">👤 アカウント</div>'
-    +'<div style="text-align:center;padding:10px 0;"><div style="font-size:13px;color:var(--text2);margin-bottom:4px;">ログイン中</div><div style="font-size:14px;font-weight:700;">'+(user.email||'Googleアカウント')+'</div></div>'
+    +'<div style="text-align:center;padding:10px 0;"><div style="font-size:13px;color:var(--text2);margin-bottom:4px;">ログイン中</div><div style="font-size:14px;font-weight:700;">'+(user.email||'')+'</div></div>'
     +'<div class="mact" style="flex-direction:column;gap:8px;"><button class="btn bd bfull" onclick="doLogout()">🚪 ログアウト</button><button class="btn bg bfull" onclick="closeM()">閉じる</button></div>');
 }
 async function doLogout(){
@@ -1965,6 +1969,13 @@ async function doLogout(){
   document.getElementById('mainApp').style.display='none';
   document.getElementById('loginScreen').classList.add('show');
   closeM();showToast('ログアウトしました');
+}
+function doExitToLogin(){
+  // ローカルモードからログイン画面へ戻る（データはlocalに保持したまま）
+  closeM();
+  localStorage.removeItem('djp_local_mode');
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('loginScreen').classList.add('show');
 }
 function doGoToLogin(){
   closeM();
@@ -1997,7 +2008,7 @@ var TUTS={
     {el:'prodDisp',
      title:'② 商品タイル',
      body:'商品をタップするとカートに追加されます。複数版がある商品は版選択ダイアログが表示されます。同じ商品を何度もタップすると数量が増えます。'},
-    {qs:'.vtog',
+    {el:'vbCard',
      title:'③ 表示切り替え',
      body:'⊞でカード表示、☰でリスト表示に切り替えられます。商品数が多いときはリスト表示が便利です。'},
     {el:'totAmt',
